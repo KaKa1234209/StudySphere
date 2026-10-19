@@ -1,5 +1,4 @@
 /**
- * subjects-vanilla.js
  * - Mảng dữ liệu giả dựa trên SQL_StudySphere.sql
  * - Render vào table tbody#subjectBody hoặc div#subjectList
  * - Thêm / Sửa / Xóa bằng prompt/confirm và cập nhật UI ngay
