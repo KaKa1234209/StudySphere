@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e8590c">
+  <title>Môn học | StudySphere</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="/css/studyflow.css" rel="stylesheet">
+</head>
+<body>
+
+  <div class="sf-shell">
+
+    <!-- ===== Thanh menu bên trái ===== -->
+    <aside class="sf-sidebar" id="sidebar" aria-label="Menu chính">
+      <div class="sf-side-head">
+        <a href="index.html" class="sf-brand">
+          <span class="sf-logo" aria-hidden="true">S</span>
+          <span>StudySphere</span>
+        </a>
+        <button type="button" class="btn-close d-lg-none" id="btnCloseMenu" aria-label="Đóng menu"></button>
+      </div>
+
+      <nav class="sf-nav">
+        <p class="sf-nav-label">Học tập</p>
+        <a href="index.html">Tổng quan</a>
+        <a href="subjects.html" class="active" aria-current="page">Môn học</a>
+        <a href="tasks.html">Nhiệm vụ</a>
+        <a href="schedule.html">Lịch học</a>
+
+        <p class="sf-nav-label">Phát triển</p>
+        <a href="notes.html">Ghi chú</a>
+        <a href="goals.html">Mục tiêu</a>
+        <a href="statistics.html">Thống kê</a>
+
+        <p class="sf-nav-label">Tài khoản</p>
+        <a href="profile.html">Hồ sơ cá nhân</a>
+      </nav>
+    </aside>
+    <div class="sf-overlay" id="overlay"></div>
+
+    <!-- ===== Nội dung chính ===== -->
+    <div class="sf-main">
+
+      <header class="sf-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <button type="button" class="sf-menu-btn d-lg-none" id="btnMenu" aria-label="Mở menu">
+            <i class="bi bi-list"></i>
+          </button>
+          <span class="sf-crumb">StudyFlow <span class="sf-crumb-sep">/</span> <strong>Môn học</strong></span>
+        </div>
+        <div class="sf-user">
+          <span class="sf-user-name" id="userName">Sinh viên</span>
+          <span class="sf-user-avatar" aria-hidden="true">S</span>
+        </div>
+      </header>
+
+      <main class="sf-page">
+
+        <!-- Banner chào mừng -->
+        <section class="sf-hero">
+          <div class="sf-hero-text">
+            <p class="sf-hero-eyebrow">Quản lý môn học</p>
+            <h1 class="sf-hero-title">Chào bạn, hôm nay học gì nào?</h1>
+            <p class="sf-hero-sub">Sắp xếp các môn trong học kỳ để không bỏ lỡ bài tập và deadline nào.</p>
+            <button type="button" class="btn sf-btn-light" id="btnAdd">
+              <i class="bi bi-plus-lg"></i>Thêm môn học
+            </button>
+          </div>
+          <div class="sf-hero-stat" aria-label="Tổng số môn học">
+            <span class="sf-hero-num" id="heroCount">0</span>
+            <span class="sf-hero-unit">môn học</span>
+          </div>
+        </section>
+
+        <!-- Danh sách môn học -->
+        <section class="sf-card">
+          <div class="sf-toolbar">
+            <div>
+              <h2 class="sf-card-title">Danh sách môn học</h2>
+              <span class="sf-count" id="countText"></span>
+            </div>
+            <input type="search" id="searchInput" class="form-control sf-search"
+                   placeholder="Tìm theo tên môn hoặc giáo viên" aria-label="Tìm môn học">
+          </div>
+
+          <table class="table sf-table align-middle mb-0" id="subjectTable">
+            <thead>
+              <tr>
+                <th scope="col" class="sf-col-num">#</th>
+                <th scope="col">Môn học</th>
+                <th scope="col">Giáo viên</th>
+                <th scope="col">Ngày tạo</th>
+                <th scope="col" class="text-end">Thao tác</th>
+              </tr>
+            </thead>
+            <tbody id="subjectBody"></tbody>
+          </table>
+
+          <div class="sf-empty d-none" id="emptyState">
+            <div class="sf-empty-mark" aria-hidden="true"></div>
+            <h2 class="sf-empty-title" id="emptyTitle">Chưa có môn học nào</h2>
+            <p class="sf-empty-text" id="emptyText">Hãy thêm môn học đầu tiên của bạn để bắt đầu sắp xếp việc học.</p>
+            <button type="button" class="btn sf-btn-primary" id="btnAddEmpty">
+              <i class="bi bi-plus-lg"></i>Thêm môn học
+            </button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ===== Modal thêm / sửa môn học ===== -->
+  <div class="modal fade" id="subjectModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <form class="modal-content" id="subjectForm" novalidate>
+        <div class="modal-header">
+          <h2 class="modal-title" id="modalTitle">Thêm môn học</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+
+        <div class="modal-body">
+          <input type="hidden" id="subjectId">
+
+          <div class="mb-3">
+            <label for="name" class="form-label">Tên môn học</label>
+            <input type="text" id="name" class="form-control" maxlength="100"
+                   placeholder="Ví dụ: Lập trình Web" required>
+            <div class="invalid-feedback">Vui lòng nhập tên môn học.</div>
+          </div>
+
+          <div class="mb-3">
+            <label for="teacher" class="form-label">Giáo viên <span class="sf-optional">(không bắt buộc)</span></label>
+            <input type="text" id="teacher" class="form-control" maxlength="100"
+                   placeholder="Ví dụ: Thầy Nguyễn Văn A">
+          </div>
+
+          <div>
+            <span class="form-label d-block">Màu nhận diện</span>
+            <div class="sf-swatches" id="swatches" role="radiogroup" aria-label="Chọn màu cho môn học">
+              <label class="sf-swatch" style="--c:#4f46e5" title="Chàm"><input type="radio" name="color" value="#4f46e5" checked><span></span></label>
+              <label class="sf-swatch" style="--c:#0ea5e9" title="Xanh dương"><input type="radio" name="color" value="#0ea5e9"><span></span></label>
+              <label class="sf-swatch" style="--c:#10b981" title="Xanh lá"><input type="radio" name="color" value="#10b981"><span></span></label>
+              <label class="sf-swatch" style="--c:#f59e0b" title="Vàng cam"><input type="radio" name="color" value="#f59e0b"><span></span></label>
+              <label class="sf-swatch" style="--c:#ef4444" title="Đỏ"><input type="radio" name="color" value="#ef4444"><span></span></label>
+              <label class="sf-swatch" style="--c:#ec4899" title="Hồng"><input type="radio" name="color" value="#ec4899"><span></span></label>
+              <label class="sf-swatch" style="--c:#8b5cf6" title="Tím"><input type="radio" name="color" value="#8b5cf6"><span></span></label>
+              <label class="sf-swatch" style="--c:#64748b" title="Xám xanh"><input type="radio" name="color" value="#64748b"><span></span></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn sf-btn-outline" data-bs-dismiss="modal">Hủy</button>
+          <button type="submit" class="btn sf-btn-primary" id="btnSave">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ===== Modal xác nhận xóa ===== -->
+  <div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title" id="confirmTitle">Xóa môn học?</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+        </div>
+        <div class="modal-body">
+          <p class="mb-2">Bạn sắp xóa môn <strong id="confirmName"></strong>.</p>
+          <p class="sf-note mb-0">Các nhiệm vụ thuộc môn này vẫn được giữ lại, chỉ mất liên kết với môn học.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn sf-btn-outline" data-bs-dismiss="modal">Hủy</button>
+          <button type="button" class="btn sf-btn-primary" id="btnConfirmDelete">Xóa</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sf-toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Mở / đóng menu trên điện thoại và máy tính bảng
+    (function () {
+      var body = document.body;
+      function toggle(open) { body.classList.toggle('sf-nav-open', open); }
+      document.getElementById('btnMenu').addEventListener('click', function () { toggle(true); });
+      document.getElementById('btnCloseMenu').addEventListener('click', function () { toggle(false); });
+      document.getElementById('overlay').addEventListener('click', function () { toggle(false); });
+    })();
+  </script>
+  <script src="/js/subjects.js"></script>
+</body>
+</html>
