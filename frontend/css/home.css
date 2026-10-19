@@ -1,0 +1,42 @@
+/* ===== Hero ===== */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;padding-top:64px;padding-bottom:40px}
+.pill{display:inline-block;background:var(--p-soft);color:var(--p-dark);font-weight:600;font-size:14px;padding:4px 14px;border-radius:99px}
+.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.15;margin:16px 0;color:var(--ink)}
+.hero h1 em{font-style:normal;color:var(--p)}
+.hero p{font-size:18px;color:var(--muted);max-width:520px;margin:0 0 28px}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn.big{padding:13px 24px;font-size:16px;border-radius:12px}
+
+/* ===== Hình xem trước giao diện (chỉ để trang trí) ===== */
+.preview{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 24px 60px -20px rgba(111,82,189,.35);display:grid;gap:18px}
+.pv-head{background:linear-gradient(135deg,var(--p-light),var(--p));border-radius:14px;padding:16px 18px;color:#fff;display:grid}
+.pv-head span{font-size:14px;opacity:.9}
+.pv-row{display:grid;grid-template-columns:120px 1fr;gap:18px;align-items:center}
+.pv-ring{width:110px;height:110px;border-radius:50%;background:conic-gradient(var(--p) 72%,var(--p-soft) 0);display:grid;place-items:center}
+.pv-ring span{background:#fff;width:80px;height:80px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:var(--p-dark)}
+.pv-tasks{list-style:none;margin:0;padding:0;display:grid;gap:8px;font-size:14px}
+.pv-tasks li{display:flex;align-items:center;gap:8px;background:var(--bg);padding:8px 10px;border-radius:10px}
+.pv-tasks i{width:12px;height:12px;border:2px solid var(--p);border-radius:4px}
+.pv-tasks small{margin-left:auto;color:var(--muted)}
+.pv-bars{display:flex;gap:10px;align-items:flex-end;height:70px}
+.pv-bars b{flex:1;background:var(--p-light);border-radius:6px 6px 0 0}
+
+/* ===== Mục chức năng ===== */
+.section-title{text-align:center;margin:56px 0 8px;font-size:28px}
+.section-sub{text-align:center;color:var(--muted);margin:0 0 32px}
+.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px}
+.feature:hover{border-color:var(--p);transform:translateY(-3px)}
+.feature .icon{width:46px;height:46px;border-radius:12px;background:var(--p-soft);display:grid;place-items:center;font-size:22px}
+.feature h3{margin:0;font-size:20px;color:var(--p-dark)}
+.feature ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}
+.feature .go{margin-top:auto;color:var(--p);font-weight:600}
+
+/* ===== Tính năng dùng chung ===== */
+.common{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:40px}
+.common div{background:var(--p-soft);border-radius:14px;padding:16px 18px;font-weight:600;color:var(--p-dark)}
+
+footer{text-align:center;color:var(--muted);padding:40px 20px;border-top:1px solid var(--line);margin-top:60px;font-size:14px}
+
+@media(max-width:800px){.hero{grid-template-columns:1fr;padding-top:36px}}
+@media(prefers-reduced-motion:no-preference){.feature{transition:transform .15s,border-color .15s}}

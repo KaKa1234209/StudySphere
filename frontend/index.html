@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>StudySphere – Quản lý học tập thông minh</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+<body>
+  <header id="navbar"></header>
+
+  <main>
+    <!-- Phần giới thiệu đầu trang -->
+    <section class="hero wrap">
+      <div>
+        <span class="pill">Dành cho học sinh, sinh viên</span>
+        <h1>Học tập có <em>kế hoạch</em>,<br>ghi nhớ có hệ thống</h1>
+        <p>StudySphere gom môn học, nhiệm vụ, ghi chú và mục tiêu vào một nơi, để bạn luôn biết hôm nay cần làm gì và đã tiến bộ đến đâu.</p>
+        <div class="cta" id="cta">
+          <a class="btn big" href="register.html">Bắt đầu miễn phí</a>
+          <a class="btn big ghost" href="login.html">Tôi đã có tài khoản</a>
+        </div>
+      </div>
+
+      <!-- Hình minh họa giao diện (chỉ để trang trí) -->
+      <div class="preview" aria-hidden="true">
+        <div class="pv-head"><b>Chào buổi sáng!</b><span>Hôm nay bạn có 3 nhiệm vụ</span></div>
+        <div class="pv-row">
+          <div class="pv-ring"><span>72%</span></div>
+          <ul class="pv-tasks">
+            <li><i></i>Ôn Toán chương 3<small>8:00</small></li>
+            <li><i></i>Học Python<small>14:00</small></li>
+            <li><i></i>Viết ghi chú Văn<small>18:00</small></li>
+          </ul>
+        </div>
+        <div class="pv-bars">
+          <b style="height:40%"></b><b style="height:65%"></b><b style="height:50%"></b>
+          <b style="height:85%"></b><b style="height:60%"></b><b style="height:95%"></b><b style="height:45%"></b>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 module chính: bấm vào để sang trang của từng thành viên -->
+    <section class="wrap">
+      <h2 class="section-title">Mọi thứ bạn cần để học hiệu quả</h2>
+      <p class="section-sub">Ba công cụ gắn kết với nhau trong cùng một tài khoản</p>
+
+      <div class="features">
+        <a class="feature" href="subjects.html">
+          <div class="icon">📅</div>
+          <h3>StudyFlow</h3>
+          <ul>
+            <li>Quản lý môn học</li>
+            <li>Nhiệm vụ, bài tập, deadline</li>
+            <li>Trạng thái và độ ưu tiên</li>
+            <li>Lọc theo môn và ngày</li>
+          </ul>
+          <span class="go">Mở StudyFlow →</span>
+        </a>
+
+        <a class="feature" href="notes.html">
+          <div class="icon">📝</div>
+          <h3>NoteHub</h3>
+          <ul>
+            <li>Ghi chú theo môn học</li>
+            <li>Tìm kiếm tiêu đề và nội dung</li>
+            <li>Gắn thẻ, ghim ghi chú</li>
+            <li>Liên kết với nhiệm vụ</li>
+          </ul>
+          <span class="go">Mở NoteHub →</span>
+        </a>
+
+        <a class="feature" href="goals.html">
+          <div class="icon">🎯</div>
+          <h3>SkillTrack</h3>
+          <ul>
+            <li>Mục tiêu học tập</li>
+            <li>Chia thành các bước nhỏ</li>
+            <li>Phần trăm hoàn thành</li>
+            <li>Thời lượng và chuỗi ngày học</li>
+          </ul>
+          <span class="go">Mở SkillTrack →</span>
+        </a>
+      </div>
+
+      <div class="common">
+        <div>🔐 Đăng ký, đăng nhập</div>
+        <div>👤 Hồ sơ cá nhân</div>
+        <div>📊 Dashboard tổng hợp</div>
+        <div>🔔 Nhắc nhiệm vụ sắp đến hạn</div>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2026 StudySphere – Dự án nhóm 3 thành viên</footer>
+
+  <script src="js/components.js"></script>
+  <script>
+    renderNavbar("home");
+
+    // Nếu đã đăng nhập thì nút chính dẫn vào học luôn
+    if (localStorage.getItem("token")) {
+      document.getElementById("cta").innerHTML =
+        '<a class="btn big" href="subjects.html">Vào học ngay</a>' +
+        '<a class="btn big ghost" href="notes.html">Xem ghi chú</a>';
+    }
+  </script>
+</body>
+</html>

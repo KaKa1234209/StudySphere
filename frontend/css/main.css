@@ -5,7 +5,6 @@ body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Be Vietnam P
 .brand-icon{height:40px;width:40px;object-fit:contain}
 .brand-name{font-weight:800;font-size:22px;letter-spacing:-.3px;color:var(--p-dark)}
 .brand-name span{color:var(--p-light)}
-.top .grow{flex:1}
 .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
 .btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--p);color:#fff;text-decoration:none;display:inline-block}
 .btn:hover{background:var(--p-dark)}
@@ -17,3 +16,19 @@ input:focus,select:focus,textarea:focus{border-color:var(--p);outline:none;box-s
 label{font-size:14px;color:var(--muted);font-weight:600;display:grid;gap:4px}
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px}
 @media(max-width:600px){.top{padding:12px 16px}}
+
+/* ===== Thanh menu ===== */
+.top{gap:20px}
+.menu{display:flex;gap:4px}
+.menu a{padding:8px 14px;border-radius:10px;color:var(--muted);text-decoration:none;font-weight:600;font-size:15px}
+.menu a:hover{background:var(--p-soft);color:var(--p-dark)}
+.menu a.active{background:var(--p-soft);color:var(--p-dark)}
+.auth{display:flex;gap:8px;margin-left:auto}
+.menu-toggle{display:none;border:0;background:var(--p-soft);color:var(--p-dark);font-size:20px;width:42px;height:42px;border-radius:10px;cursor:pointer}
+
+@media(max-width:900px){
+  .top{flex-wrap:wrap}
+  .menu-toggle{display:block}
+  .menu{display:none;order:3;width:100%;flex-direction:column}
+  .menu.open{display:flex}
+}
