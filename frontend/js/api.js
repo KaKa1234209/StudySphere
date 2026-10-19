@@ -8,10 +8,16 @@ async function request(url, options = {}) {
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
   });
+  if (res.status === 401 && !DEV_NO_AUTH) {
+    localStorage.removeItem("token");
+    location.href = "login.html";
+    return;
+  }
   if (res.status === 204) return null;
   const data = await res.json();
   if (!res.ok) throw new Error(data.message || "Có lỗi xảy ra");
   return data;
+  
 }
 
 const Api = {

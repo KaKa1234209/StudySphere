@@ -3,349 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudySphere - Quản lý học tập</title>
-    <!-- FontAwesome Icons -->
+    <title>StudySphere - Môn học</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/studyflow.css">
 </head>
 <body>
     <div class="dashboard-container">
-        <!-- Sidebar bên trái -->
-        <aside class="sidebar">
-            <div class="logo-section">
-                <img src="../images/logo.png" alt="StudySphere Logo" class="logo-img">
-                <span class="logo-text">StudySphere</span>
-            </div>
-            
-            <nav class="sidebar-nav">
-                <div class="nav-group">
-                    <span class="group-title">HỌC TẬP</span>
-                    <a href="#" class="nav-item"><i class="fa-solid fa-chart-pie"></i><span>Tổng quan</span></a>
-                    <a href="#" class="nav-item active"><i class="fa-solid fa-book"></i><span>Môn học</span></a>
-                    <a href="#" class="nav-item"><i class="fa-solid fa-list-check"></i><span>Nhiệm vụ</span></a>
-                    <a href="#" class="nav-item"><i class="fa-regular fa-calendar-days"></i><span>Lịch học</span></a>
-                </div>
+        <aside class="sidebar" id="sidebar"></aside>
 
-                <div class="nav-group">
-                    <span class="group-title">PHÁT TRIỂN</span>
-                    <a href="#" class="nav-item"><i class="fa-regular fa-note-sticky"></i><span>Ghi chú</span></a>
-                    <a href="#" class="nav-item"><i class="fa-solid fa-bullseye"></i><span>Mục tiêu</span></a>
-                    <a href="#" class="nav-item"><i class="fa-solid fa-chart-line"></i><span>Thống kê</span></a>
-                </div>
-
-                <div class="nav-group">
-                    <span class="group-title">TÀI KHOẢN</span>
-                    <a href="#" class="nav-item"><i class="fa-regular fa-user"></i><span>Hồ sơ cá nhân</span></a>
-                </div>
-            </nav>
-        </aside>
-
-        <!-- Main Content Zone -->
         <main class="main-wrapper">
-            <!-- Header phía trên -->
-            <header class="top-header">
-                <div class="header-title">
-                    <h2>StudyFlow / Môn học</h2>
-                </div>
-                <div class="header-actions">
-                    <div class="focus-toggle-wrapper">
-                        <span>Focus Mode</span>
-                        <label class="switch">
-                            <input type="checkbox" checked>
-                            <span class="slider round"></span>
-                        </label>
-                    </div>
-                    <button class="icon-btn"><i class="fa-regular fa-bell"></i></button>
-                    <div class="user-profile">
-                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=256" alt="Avatar">
-                        <div class="user-info">
-                            <span class="name">Say</span>
-                            <span class="role">Sinh viên</span>
-                        </div>
-                    </div>
-                </div>
-            </header>
+            <header class="top-header" id="topbar"></header>
 
-            <!-- Dashboard Grid Area -->
-            <div class="dashboard-grid">
-                <!-- Banner & Calendar Dynamic -->
-                <section class="card banner-card">
-                    <div class="banner-content">
-                        <h3>Good morning, Say!</h3>
-                        <p>Bạn có các nhiệm vụ cần hoàn thành hôm nay.</p>
-                        <button class="btn-ready">Ready!</button>
+            <div class="sj-page">
+                <!-- Banner đầu trang -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">QUẢN LÝ MÔN HỌC</span>
+                        <h1>Chào bạn, hôm nay học gì nào?</h1>
+                        <p>Sắp xếp các môn trong học kỳ để không bỏ lỡ bài tập và deadline nào.</p>
+                        <button class="sj-btn-white" id="btnAddHero"><i class="fa-solid fa-plus"></i> Thêm môn học</button>
                     </div>
-                    <div class="mini-calendar">
-                        <div class="calendar-month-title" id="calendar-month-title">Tháng 10, 2026</div>
-                        <div class="calendar-header">
-                            <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
-                        </div>
-                        <div class="calendar-days" id="calendar-days"></div>
-                    </div>
+                    <div class="sj-count"><b id="heroCount">0</b><span>môn học</span></div>
                 </section>
 
-                <!-- Todayps Tasks - Có thể thêm nhiệm vụ mới -->
-                <section class="card tasks-card">
-                    <div class="card-header">
-                        <h3>Today's Tasks</h3>
-                    </div>
-                    <ul class="task-list">
-                        <li class="task-item">
-                            <input type="checkbox" id="task1">
-                            <label for="task1">
-                                <span class="task-name">Meeting</span>
-                                <span class="task-tag">• Work</span>
-                            </label>
-                            <span class="task-time">8:00 AM</span>
-                        </li>
-                        <li class="task-item">
-                            <input type="checkbox" id="task2">
-                            <label for="task2">
-                                <span class="task-name">Learning Python</span>
-                                <span class="task-tag">• Study</span>
-                            </label>
-                            <span class="task-time">2:00 PM</span>
-                        </li>
-                    </ul>
-
-                    <!-- Thanh thêm nhiệm vụ hoạt động được -->
-                    <div class="add-task-container">
-                        <div class="input-task-box">
-                            <button class="btn-add-icon" id="btn-add-task"><i class="fa-solid fa-plus"></i></button>
-                            <input type="text" id="task-input" placeholder="Add New Task for Today">
+                <!-- Danh sách môn học -->
+                <section class="sj-list">
+                    <div class="sj-list-head">
+                        <div>
+                            <h2>Danh sách môn học</h2>
+                            <p id="countText">0 môn học</p>
                         </div>
-                        <button class="icon-sub-btn" title="Hẹn giờ"><i class="fa-regular fa-clock"></i></button>
-                        <div class="category-select-wrapper">
-                            <select class="category-select" id="task-category">
-                                <option value="• Work">• Work</option>
-                                <option value="• Study">• Study</option>
-                                <option value="• Personal">• Personal</option>
-                            </select>
-                        </div>
-                        <button class="icon-sub-btn" title="Gắn nhãn"><i class="fa-solid fa-tag"></i></button>
+                        <input type="search" id="searchInput" class="sj-search"
+                               placeholder="Tìm theo tên môn học hoặc giáo viên" aria-label="Tìm môn học">
                     </div>
-                </section>
-
-                <!-- Weekly Productivity Analysis -->
-                <section class="card chart-card">
-                    <h3>Weekly Productivity Analysis</h3>
-                    <div class="chart-container">
-                        <span class="target-line-label">10h</span>
-                        <div class="bar-chart">
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 65%;"></div></div><span>S</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 45%;"></div></div><span>S</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 85%;"></div></div><span>M</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 50%;"></div></div><span>Tu</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 75%;"></div></div><span>W</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 95%;"></div></div><span>Th</span></div>
-                            <div class="bar-col"><div class="bar-track"><div class="bar-fill" style="height: 35%;"></div></div><span>F</span></div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- Task Performance -->
-                <section class="card performance-card">
-                    <div class="card-header-sub">
-                        <h3>Task Performance</h3>
-                        <span class="sub-label">Today</span>
-                    </div>
-                    <div class="circle-progress-wrapper">
-                        <svg class="progress-ring" width="120" height="120">
-                            <circle class="progress-ring__circle-bg" stroke-width="10" fill="transparent" r="48" cx="60" cy="60"/>
-                            <circle class="progress-ring__circle" stroke-width="10" stroke-dasharray="301.59" stroke-dashoffset="84" fill="transparent" r="48" cx="60" cy="60"/>
-                        </svg>
-                        <span class="percentage">72%</span>
-                    </div>
-                    <div class="legend"><span class="dot"></span> Productive Hours</div>
-                </section>
-
-                <!-- Pomodoro Timer - Có chức năng bấm Start/Pause/Tăng giảm -->
-                <section class="card pomodoro-card">
-                    <div class="pomo-header">
-                        <h3>Pomodoro Timer</h3>
-                        <div class="pomo-select-box">
-                            <select class="pomo-select">
-                                <option>Math practice ▾</option>
-                                <option>Python Study ▾</option>
-                            </select>
-                        </div>
-                    </div>
-                    
-                    <div class="hourglass-wrapper">
-                        <i class="fa-solid fa-hourglass-half hourglass-icon"></i>
-                    </div>
-
-                    <div class="timer-controls-row">
-                        <button class="btn-time-adjust" id="btn-minus">-</button>
-                        <span class="time-display-text" id="pomo-time">25:00</span>
-                        <button class="btn-time-adjust" id="btn-plus">+</button>
-                    </div>
-
-                    <button class="btn-pomo-start" id="btn-pomo-start">Start</button>
-                </section>
-
-                <!-- Block List - Có thể thêm ứng dụng chặn -->
-                <section class="card blocklist-card">
-                    <div class="card-header">
-                        <h3>Block List</h3>
-                        <button class="btn-plus" id="btn-add-block"><i class="fa-solid fa-plus"></i></button>
-                    </div>
-                    <div class="app-icons" id="block-icons-container">
-                        <div class="app-icon" title="Telegram"><i class="fa-brands fa-telegram"></i></div>
-                        <div class="app-icon" title="Instagram"><i class="fa-brands fa-instagram"></i></div>
-                        <div class="app-icon" title="Twitter"><i class="fa-brands fa-x-twitter"></i></div>
-                    </div>
+                    <div id="subjectList"></div>
                 </section>
             </div>
         </main>
     </div>
 
-    <!-- JavaScript Xử Lý Chức Năng Tương Tác -->
-    <script>
-        // 1. Lịch Tự Động Theo Múi Giờ Việt Nam
-        function generateCalendar() {
-            const now = new Date(new Date().toLocaleString("en-US", {timeZone: "Asia/Ho_Chi_Minh"}));
-            const year = now.getFullYear();
-            const month = now.getMonth();
-            const todayDate = now.getDate();
+    <!-- Hộp thoại thêm / sửa -->
+    <dialog id="dlg" class="dlg">
+        <form id="form" novalidate>
+            <h3 id="dlg-title">Thêm môn học</h3>
+            <label>Mã môn <input id="f-code" class="field" maxlength="20" placeholder="VD: MATH101"></label>
+            <label>Tên môn học <input id="f-name" class="field" maxlength="100" placeholder="VD: Toán học"></label>
+            <label>Giáo viên (không bắt buộc) <input id="f-teacher" class="field" maxlength="100" placeholder="VD: Cô Lan"></label>
+            <p class="form-error" id="f-error" role="alert"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn-soft" id="btn-cancel">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu</button>
+            </div>
+        </form>
+    </dialog>
 
-            const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
-            document.getElementById("calendar-month-title").innerText = `${monthNames[month]}, ${year}`;
-
-            const calendarDaysContainer = document.getElementById("calendar-days");
-            calendarDaysContainer.innerHTML = "";
-
-            const firstDayIndex = (new Date(year, month, 1).getDay() + 6) % 7;
-            const totalDays = new Date(year, month + 1, 0).getDate();
-            const prevMonthTotalDays = new Date(year, month, 0).getDate();
-
-            for (let i = firstDayIndex; i > 0; i--) {
-                const daySpan = document.createElement("span");
-                daySpan.classList.add("fade");
-                daySpan.innerText = prevMonthTotalDays - i + 1;
-                calendarDaysContainer.appendChild(daySpan);
-            }
-
-            for (let day = 1; day <= totalDays; day++) {
-                const daySpan = document.createElement("span");
-                daySpan.innerText = day;
-                if (day === todayDate) {
-                    daySpan.classList.add("active-day");
-                }
-                calendarDaysContainer.appendChild(daySpan);
-            }
-        }
-        generateCalendar();
-
-        // 2. Chức Năng Thêm Task Mới (Today's Tasks)
-        const taskInput = document.getElementById('task-input');
-        const addTaskBtn = document.getElementById('btn-add-task');
-        const taskList = document.querySelector('.task-list');
-        const taskCategory = document.getElementById('task-category');
-
-        function addNewTask() {
-            const text = taskInput.value.trim();
-            if (!text) return;
-
-            const li = document.createElement('li');
-            li.classList.add('task-item');
-            const uniqueId = 'task_' + Date.now();
-
-            li.innerHTML = `
-                <input type="checkbox" id="${uniqueId}">
-                <label for="${uniqueId}">
-                    <span class="task-name">${text}</span>
-                    <span class="task-tag">${taskCategory.value}</span>
-                </label>
-                <span class="task-time">Hôm nay</span>
-            `;
-
-            taskList.appendChild(li);
-            taskInput.value = '';
-        }
-
-        addTaskBtn.addEventListener('click', addNewTask);
-        taskInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') addNewTask();
-        });
-
-        // 3. Chức Năng Đồng Hồ Pomodoro (Start, Pause, Tăng/Giảm thời gian)
-        let totalSeconds = 25 * 60;
-        let timerInterval = null;
-        let isRunning = false;
-
-        const timeDisplay = document.getElementById('pomo-time');
-        const startBtn = document.getElementById('btn-pomo-start');
-        const plusBtn = document.getElementById('btn-plus');
-        const minusBtn = document.getElementById('btn-minus');
-
-        function updateTimerDisplay() {
-            const minutes = Math.floor(totalSeconds / 60);
-            const seconds = totalSeconds % 60;
-            timeDisplay.innerText = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        }
-
-        startBtn.addEventListener('click', () => {
-            if (!isRunning) {
-                if (totalSeconds <= 0) totalSeconds = 25 * 60;
-                isRunning = true;
-                startBtn.innerText = "Pause";
-                startBtn.style.background = "#7c5cfc";
-                startBtn.style.color = "#ffffff";
-
-                timerInterval = setInterval(() => {
-                    if (totalSeconds > 0) {
-                        totalSeconds--;
-                        updateTimerDisplay();
-                    } else {
-                        clearInterval(timerInterval);
-                        isRunning = false;
-                        startBtn.innerText = "Start";
-                        startBtn.style.background = "#ffffff";
-                        startBtn.style.color = "#272433";
-                        alert("Hoàn thành phiên Pomodoro rồi! Hãy nghỉ ngơi chút nhé.");
-                    }
-                }, 1000);
-            } else {
-                clearInterval(timerInterval);
-                isRunning = false;
-                startBtn.innerText = "Start";
-                startBtn.style.background = "#ffffff";
-                startBtn.style.color = "#272433";
-            }
-        });
-
-        plusBtn.addEventListener('click', () => {
-            if (!isRunning) {
-                totalSeconds += 5 * 60;
-                updateTimerDisplay();
-            }
-        });
-
-        minusBtn.addEventListener('click', () => {
-            if (!isRunning && totalSeconds > 5 * 60) {
-                totalSeconds -= 5 * 60;
-                updateTimerDisplay();
-            }
-        });
-
-        // 4. Chức Năng Thêm Ứng Dụng Chặn (Block List)
-        const addBlockBtn = document.getElementById('btn-add-block');
-        const blockIconsContainer = document.getElementById('block-icons-container');
-
-        addBlockBtn.addEventListener('click', () => {
-            const appName = prompt("Nhập tên ứng dụng hoặc trang web bạn muốn chặn:");
-            if (appName && appName.trim() !== "") {
-                const appDiv = document.createElement('div');
-                appDiv.classList.add('app-icon');
-                appDiv.title = appName;
-                appDiv.innerHTML = `<i class="fa-solid fa-ban"></i>`;
-                blockIconsContainer.appendChild(appDiv);
-            }
-        });
-    </script>
-   <script src="../frontend/js/subjects.js"></script>>
+    <script src="js/components.js"></script>
+    <script src="js/subjects.js"></script>
 </body>
 </html>

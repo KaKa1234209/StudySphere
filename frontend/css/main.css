@@ -1,19 +1,24 @@
-:root{--bg:#f7f5fd;--surface:#fff;--ink:#2b2340;--muted:#7a7092;--line:#e4dcf4;--p:#8c7ad0;--p-dark:#6a58b0;--p-light:#a99be8;--p-soft:#ece8fa;--danger:#c0504d}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Be Vietnam Pro","Segoe UI",system-ui,sans-serif}
-.top{display:flex;align-items:center;gap:16px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
-.brand-icon{height:40px;width:40px;object-fit:contain}
-.brand-name{font-weight:800;font-size:22px;letter-spacing:-.3px;color:var(--p-dark)}
-.brand-name span{color:var(--p-light)}
-.wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
-.btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--p);color:#fff;text-decoration:none;display:inline-block}
-.btn:hover{background:var(--p-dark)}
-.btn.ghost{background:var(--p-soft);color:var(--p-dark)}.btn.ghost:hover{background:#ded4f6}
-.btn.danger{background:#fbeaea;color:var(--danger)}
-:focus-visible{outline:3px solid #b9a5ef;outline-offset:2px}
-input,select,textarea{font:inherit;color:inherit;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;width:100%}
-input:focus,select:focus,textarea:focus{border-color:var(--p);outline:none;box-shadow:0 0 0 3px var(--p-soft)}
-label{font-size:14px;color:var(--muted);font-weight:600;display:grid;gap:4px}
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:10px}
-@media(max-width:600px){.top{padding:12px 16px}}
+/* ===== Menu dọc bên trái (dùng cho mọi trang sau khi đăng nhập) ===== */
+body.has-sidebar{padding-left:250px}
+.sidebar{position:fixed;inset:0 auto 0 0;width:250px;background:linear-gradient(180deg,var(--p),var(--p-dark));color:#fff;padding:20px 14px;display:flex;flex-direction:column;gap:4px;z-index:20;overflow-y:auto}
+.sidebar .brand{display:flex;align-items:center;gap:10px;text-decoration:none;padding:4px 8px 18px}
+.sidebar .brand-icon{height:40px;width:40px;object-fit:contain;background:#fff;border-radius:12px;padding:3px}
+.sidebar .brand-name{font-weight:800;font-size:20px;color:#fff}
+.sidebar .brand-name span{color:#e0d8fa}
+.sidebar nav{display:flex;flex-direction:column;gap:4px}
+.sidebar nav a{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:#efeafc;text-decoration:none;font-weight:600;font-size:15px}
+.sidebar nav a:hover{background:rgba(255,255,255,.16)}
+.sidebar nav a.active{background:#fff;color:var(--p-dark)}
+.sidebar .user{margin-top:auto;padding:14px 8px 4px;border-top:1px solid rgba(255,255,255,.25);font-size:14px}
+.sidebar .user b{display:block;margin-bottom:8px;word-break:break-all}
+.sidebar .user button{width:100%;border:0;border-radius:10px;padding:9px;font:inherit;font-weight:600;cursor:pointer;background:rgba(255,255,255,.18);color:#fff}
+.sidebar .user button:hover{background:rgba(255,255,255,.3)}
+.side-toggle{display:none;position:fixed;top:12px;left:12px;z-index:30;border:0;border-radius:10px;width:42px;height:42px;font-size:20px;background:var(--p);color:#fff;cursor:pointer}
 
+@media(max-width:900px){
+  body.has-sidebar{padding-left:0}
+  .sidebar{transform:translateX(-100%);transition:transform .2s}
+  .sidebar.open{transform:none}
+  .side-toggle{display:block}
+  body.has-sidebar .wrap{padding-top:70px}
+}
