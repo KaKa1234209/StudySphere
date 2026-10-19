@@ -21,50 +21,64 @@ function fillSubjects(select, withAll) {
     SUBJECTS.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
 }
 
-// ===== Thanh menu dùng chung cho mọi trang =====
-// Thêm/sửa trang: chỉ cần sửa mảng MENU này, tất cả trang tự cập nhật.
+// ===== Menu dọc dùng chung + chặn người chưa đăng nhập =====
+
+// Khi chưa làm xong đăng nhập, để true để vào thẳng các trang mà không cần token.
+// Khi Thành viên 3 làm xong auth, ĐỔI THÀNH false.
+const DEV_NO_AUTH = true;
+
+// Thêm/sửa trang trong menu: chỉ cần sửa mảng này, mọi trang tự cập nhật.
 const MENU = [
-  { key: "home",       label: "Trang chủ", href: "index.html" },
-  { key: "subjects",   label: "Môn học",   href: "subjects.html" },     // Thành viên 1
-  { key: "tasks",      label: "Nhiệm vụ",  href: "tasks.html" },        // Thành viên 1
-  { key: "schedule",   label: "Lịch học",  href: "schedule.html" },     // Thành viên 1
-  { key: "notes",      label: "Ghi chú",   href: "notes.html" },        // Thành viên 2
-  { key: "goals",      label: "Mục tiêu",  href: "goals.html" },        // Thành viên 3
-  { key: "statistics", label: "Thống kê",  href: "statistics.html" },   // Thành viên 3
+  { key: "dashboard",  icon: "🏠", label: "Trang chủ", href: "dashboard.html" },
+  { key: "subjects",   icon: "📚", label: "Môn học",   href: "subjects.html" },    // Thành viên 1
+  { key: "tasks",      icon: "✅", label: "Nhiệm vụ",  href: "tasks.html" },       // Thành viên 1
+  { key: "schedule",   icon: "🗓️", label: "Lịch học",  href: "schedule.html" },    // Thành viên 1
+  { key: "notes",      icon: "📝", label: "Ghi chú",   href: "notes.html" },       // Thành viên 2
+  { key: "goals",      icon: "🎯", label: "Mục tiêu",  href: "goals.html" },       // Thành viên 3
+  { key: "statistics", icon: "📊", label: "Thống kê",  href: "statistics.html" },  // Thành viên 3
+  { key: "profile",    icon: "👤", label: "Hồ sơ",     href: "profile.html" },     // Thành viên 3
 ];
 
+// Chưa đăng nhập thì đưa về trang đăng nhập
+function requireLogin() {
+  if (!DEV_NO_AUTH && !localStorage.getItem("token")) location.replace("login.html");
+}
+
+function logout() {
+  localStorage.removeItem("token");
+  localStorage.removeItem("user");
+  location.href = "index.html";
+}
+
+// active = key của trang hiện tại, ví dụ renderNavbar("notes")
 function renderNavbar(active) {
+  requireLogin();
   const el = document.getElementById("navbar");
   if (!el) return;
-  const loggedIn = !!localStorage.getItem("token");
+  const user = JSON.parse(localStorage.getItem("user") || "null");   // auth.js lưu { name, email } khi đăng nhập
 
-  el.className = "top";
+  document.body.classList.add("has-sidebar");
+  el.className = "sidebar";
   el.innerHTML = `
-    <a class="brand" href="index.html">
+    <a class="brand" href="dashboard.html">
       <img src="images/favicon.png" alt="" class="brand-icon">
       <span class="brand-name">Study<span>Sphere</span></span>
     </a>
-    <nav class="menu" id="menu" aria-label="Menu chính">
-      ${MENU.map(m => `<a href="${m.href}" class="${m.key === active ? "active" : ""}">${m.label}</a>`).join("")}
+    <nav aria-label="Menu chính">
+      ${MENU.map(m => `<a href="${m.href}" class="${m.key === active ? "active" : ""}"><span>${m.icon}</span>${m.label}</a>`).join("")}
     </nav>
-    <div class="auth">
-      ${loggedIn
-        ? `<a class="btn ghost" href="profile.html">Hồ sơ</a><button class="btn" id="logout">Đăng xuất</button>`
-        : `<a class="btn ghost" href="login.html">Đăng nhập</a><a class="btn" href="register.html">Đăng ký</a>`}
-    </div>
-    <button class="menu-toggle" id="menuToggle" aria-label="Mở menu" aria-expanded="false">☰</button>`;
+    <div class="user">
+      <b>${esc(user ? user.name || user.email : "Khách")}</b>
+      <button id="logoutBtn">Đăng xuất</button>
+    </div>`;
 
-  // Nút ☰ trên điện thoại: mở/đóng menu
-  const toggle = document.getElementById("menuToggle");
-  toggle.addEventListener("click", () => {
-    const open = document.getElementById("menu").classList.toggle("open");
-    toggle.setAttribute("aria-expanded", open);
-  });
+  document.getElementById("logoutBtn").addEventListener("click", logout);
 
-  // Đăng xuất: xóa token rồi về trang chủ
-  const logout = document.getElementById("logout");
-  if (logout) logout.addEventListener("click", () => {
-    localStorage.removeItem("token");
-    location.href = "index.html";
-  });
+  // Nút ☰ trên điện thoại
+  const toggle = document.createElement("button");
+  toggle.className = "side-toggle";
+  toggle.textContent = "☰";
+  toggle.setAttribute("aria-label", "Mở menu");
+  toggle.addEventListener("click", () => el.classList.toggle("open"));
+  document.body.append(toggle);
 }

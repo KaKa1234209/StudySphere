@@ -1,13 +1,20 @@
-/* ===== Hero ===== */
-.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;padding-top:64px;padding-bottom:40px}
+/* ===== Thanh trên của trang giới thiệu ===== */
+.land-top{display:flex;align-items:center;justify-content:space-between;max-width:1100px;margin:0 auto;padding:18px 20px}
+.land-brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:800;font-size:22px;color:var(--p-dark)}
+.land-brand img{height:40px;width:40px;object-fit:contain}
+.land-brand b{color:var(--p-light)}
+.land-actions{display:flex;gap:8px}
+
+/* ===== Giới thiệu đầu trang ===== */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:center;max-width:1100px;margin:0 auto;padding:56px 20px 40px}
 .pill{display:inline-block;background:var(--p-soft);color:var(--p-dark);font-weight:600;font-size:14px;padding:4px 14px;border-radius:99px}
-.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.15;margin:16px 0;color:var(--ink)}
+.hero h1{font-size:clamp(32px,5vw,52px);line-height:1.15;margin:16px 0}
 .hero h1 em{font-style:normal;color:var(--p)}
 .hero p{font-size:18px;color:var(--muted);max-width:520px;margin:0 0 28px}
 .cta{display:flex;gap:12px;flex-wrap:wrap}
 .btn.big{padding:13px 24px;font-size:16px;border-radius:12px}
 
-/* ===== Hình xem trước giao diện (chỉ để trang trí) ===== */
+/* ===== Hình minh họa giao diện ===== */
 .preview{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 24px 60px -20px rgba(111,82,189,.35);display:grid;gap:18px}
 .pv-head{background:linear-gradient(135deg,var(--p-light),var(--p));border-radius:14px;padding:16px 18px;color:#fff;display:grid}
 .pv-head span{font-size:14px;opacity:.9}
@@ -21,22 +28,21 @@
 .pv-bars{display:flex;gap:10px;align-items:flex-end;height:70px}
 .pv-bars b{flex:1;background:var(--p-light);border-radius:6px 6px 0 0}
 
-/* ===== Mục chức năng ===== */
-.section-title{text-align:center;margin:56px 0 8px;font-size:28px}
-.section-sub{text-align:center;color:var(--muted);margin:0 0 32px}
+/* ===== Các mục bên dưới ===== */
+.land-section{max-width:1100px;margin:0 auto;padding:40px 20px}
+.land-section h2{text-align:center;font-size:28px;margin:0 0 8px}
+.land-section .sub{text-align:center;color:var(--muted);margin:0 0 28px}
 .features{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
-.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:inherit;display:flex;flex-direction:column;gap:10px}
-.feature:hover{border-color:var(--p);transform:translateY(-3px)}
-.feature .icon{width:46px;height:46px;border-radius:12px;background:var(--p-soft);display:grid;place-items:center;font-size:22px}
-.feature h3{margin:0;font-size:20px;color:var(--p-dark)}
+.feature{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px}
+.feature .icon{width:46px;height:46px;border-radius:12px;background:var(--p-soft);display:grid;place-items:center;font-size:22px;margin-bottom:10px}
+.feature h3{margin:0 0 8px;font-size:20px;color:var(--p-dark)}
 .feature ul{margin:0;padding-left:18px;color:var(--muted);font-size:15px}
-.feature .go{margin-top:auto;color:var(--p);font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-top:24px}
+.steps div{text-align:center;padding:10px}
+.steps span{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:50%;background:var(--p);color:#fff;font-weight:700;font-size:18px}
+.steps h4{margin:12px 0 4px;font-size:18px}
+.steps p{margin:0;color:var(--muted)}
 
-/* ===== Tính năng dùng chung ===== */
-.common{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:40px}
-.common div{background:var(--p-soft);border-radius:14px;padding:16px 18px;font-weight:600;color:var(--p-dark)}
+footer{text-align:center;color:var(--muted);padding:40px 20px;border-top:1px solid var(--line);margin-top:40px;font-size:14px}
 
-footer{text-align:center;color:var(--muted);padding:40px 20px;border-top:1px solid var(--line);margin-top:60px;font-size:14px}
-
-@media(max-width:800px){.hero{grid-template-columns:1fr;padding-top:36px}}
-@media(prefers-reduced-motion:no-preference){.feature{transition:transform .15s,border-color .15s}}
+@media(max-width:800px){.hero{grid-template-columns:1fr;padding-top:32px}}
