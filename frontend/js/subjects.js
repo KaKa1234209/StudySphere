@@ -1,202 +1,245 @@
-(() => {
-  const API = '/api/subjects';
-  const DEFAULT_COLOR = '#4f46e5';
+/**
+ * subjects-vanilla.js
+ * - Mảng dữ liệu giả dựa trên SQL_StudySphere.sql
+ * - Render vào table tbody#subjectBody hoặc div#subjectList
+ * - Thêm / Sửa / Xóa bằng prompt/confirm và cập nhật UI ngay
+ * - Pomodoro timer đơn giản (btn-pomo-start, btn-plus, btn-minus, pomo-time)
+ */
+(function () {
+  // 1) Dữ liệu giả (dựa trên SQL_StudySphere.sql)
+  let subjects = [
+    { id: 1, code: 'MATH101', name: 'Toán học' },
+    { id: 2, code: 'PROG201', name: 'Ngôn ngữ lập trình' },
+    { id: 3, code: 'DB301',   name: 'Cơ sở dữ liệu' },
+    { id: 4, code: 'NET201',  name: 'Mạng máy tính' },
+    { id: 5, code: 'WEB301',  name: 'Thiết kế web' },
+    { id: 6, code: 'ENG201',  name: 'Tiếng Anh' }
+  ];
+
+  // Utility: lấy element theo id (nếu có)
   const $ = id => document.getElementById(id);
 
-  let subjects = [];
-  let deleteId = null;
+  // 2) Render danh sách (hỗ trợ table tbody#subjectBody hoặc list div#subjectList)
+  function renderSubjects(filter = '') {
+    const q = (filter || '').trim().toLowerCase();
 
-  const subjectModal = new bootstrap.Modal($('subjectModal'));
-  const confirmModal = new bootstrap.Modal($('confirmModal'));
-  const form = $('subjectForm');
+    const filtered = subjects.filter(s =>
+      s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
+    );
 
-  // ---------- Tiện ích ----------
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-  }[c]));
+    // Nếu có bảng tbody#subjectBody -> render dạng bảng
+    const tbody = $('subjectBody');
+    if (tbody) {
+      tbody.innerHTML = filtered.map((s, i) => `
+        <tr data-id="${s.id}">
+          <td data-label="#">${i + 1}</td>
+          <td data-label="Mã">${escapeHtml(s.code)}</td>
+          <td data-label="Môn học">${escapeHtml(s.name)}</td>
+          <td class="text-end">
+            <button class="btn-edit" data-id="${s.id}">Sửa</button>
+            <button class="btn-delete" data-id="${s.id}">Xóa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
 
-  const safeColor = c => (/^#[0-9a-f]{3,8}$/i.test(c || '') ? c : DEFAULT_COLOR);
+    // Nếu có div#subjectList -> render dạng thẻ / danh sách
+    const list = $('subjectList');
+    if (list) {
+      list.innerHTML = filtered.map(s => `
+        <div class="subject-card" data-id="${s.id}">
+          <div><strong>${escapeHtml(s.code)}</strong> — ${escapeHtml(s.name)}</div>
+          <div>
+            <button class="btn-edit" data-id="${s.id}">Sửa</button>
+            <button class="btn-delete" data-id="${s.id}">Xóa</button>
+          </div>
+        </div>
+      `).join('');
+    }
 
-  const fmtDate = d => {
-    if (!d) return '';
-    const date = new Date(d);
-    return isNaN(date) ? '' : date.toLocaleDateString('vi-VN');
-  };
+    // cập nhật đếm (nếu có phần tử #countText hoặc #heroCount)
+    if ($('countText')) $('countText').textContent = `${filtered.length} môn học`;
+    if ($('heroCount')) $('heroCount').textContent = subjects.length;
+  }
 
-  let toastTimer;
-  function toast(msg) {
+  // Helper escape
+  function escapeHtml(s) {
+    return String(s || '').replace(/[&<>"']/g, function (c) {
+      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
+    });
+  }
+
+  // 3) Thêm môn học (dùng prompt đơn giản)
+  function addSubject() {
+    const code = prompt('Nhập mã môn (ví dụ MATH101):', '');
+    if (!code) return;
+    const name = prompt('Nhập tên môn:', '');
+    if (!name) return;
+
+    // tạo id mới (max id + 1)
+    const id = subjects.length ? Math.max(...subjects.map(s => s.id)) + 1 : 1;
+    subjects.push({ id, code: code.trim(), name: name.trim() });
+    renderSubjects($('searchInput') ? $('searchInput').value : '');
+    showTinyToast('Đã thêm môn học');
+  }
+
+  // Sửa môn học (prompt)
+  function editSubject(id) {
+    const s = subjects.find(x => x.id === id);
+    if (!s) return alert('Môn học không tìm thấy');
+    const newCode = prompt('Sửa mã môn:', s.code);
+    if (!newCode) return;
+    const newName = prompt('Sửa tên môn:', s.name);
+    if (!newName) return;
+
+    s.code = newCode.trim();
+    s.name = newName.trim();
+    renderSubjects($('searchInput') ? $('searchInput').value : '');
+    showTinyToast('Đã cập nhật môn học');
+  }
+
+  // Xóa môn học
+  function deleteSubject(id) {
+    const s = subjects.find(x => x.id === id);
+    if (!s) return alert('Môn học không tìm thấy');
+    if (!confirm(`Bạn có chắc muốn xóa "${s.name}" (${s.code})?`)) return;
+    subjects = subjects.filter(x => x.id !== id);
+    renderSubjects($('searchInput') ? $('searchInput').value : '');
+    showTinyToast('Đã xóa môn học');
+  }
+
+  // Event delegation cho buttons sửa / xóa trong container
+  function attachListHandlers() {
+    const tbody = $('subjectBody');
+    const list = $('subjectList');
+
+    const handler = function (e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const id = Number(btn.dataset.id);
+      if (btn.classList.contains('btn-edit')) {
+        editSubject(id);
+      } else if (btn.classList.contains('btn-delete')) {
+        deleteSubject(id);
+      }
+    };
+
+    if (tbody) tbody.addEventListener('click', handler);
+    if (list) list.addEventListener('click', handler);
+  }
+
+  // Tắt/bật search (nếu có #searchInput)
+  function attachSearchHandler() {
+    const si = $('searchInput');
+    if (!si) return;
+    si.addEventListener('input', () => renderSubjects(si.value));
+  }
+
+  // Nút thêm (nếu có #btnAdd or #btnAddSubject)
+  function attachAddButtons() {
+    const b1 = $('btnAdd');
+    const b2 = $('btnAddSubject');
+    const b3 = $('btnAddEmpty'); // trang hiện có thể có
+    [b1, b2, b3].forEach(b => {
+      if (b) b.addEventListener('click', addSubject);
+    });
+  }
+
+  // tiny toast (nếu có element #toast) else fallback console.log
+  let toastTimer = null;
+  function showTinyToast(msg) {
     const el = $('toast');
+    if (!el) {
+      // fallback: console + alert suppressed
+      console.log('[toast]', msg);
+      return;
+    }
     el.textContent = msg;
     el.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2600);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
   }
 
-  async function request(url, options = {}) {
-    const res = await fetch(url, {
-      headers: { 'Content-Type': 'application/json' },
-      ...options
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.success === false) {
-      throw new Error(json.message || 'Có lỗi xảy ra, vui lòng thử lại');
-    }
-    return json.data;
+  // ---------- Pomodoro Timer đơn giản ----------
+  let totalSeconds = 25 * 60;
+  let timerInterval = null;
+  let isRunning = false;
+
+  function formatTime(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   }
 
-  // ---------- Hiển thị danh sách ----------
-  function render() {
-    const q = $('searchInput').value.trim().toLowerCase();
-    const list = subjects.filter(s =>
-      s.name.toLowerCase().includes(q) || (s.teacher || '').toLowerCase().includes(q)
-    );
-
-    $('countText').textContent = `${list.length} môn học`;
-    $('heroCount').textContent = subjects.length;
-    $('subjectTable').classList.toggle('d-none', list.length === 0);
-    $('emptyState').classList.toggle('d-none', list.length > 0);
-
-    if (list.length === 0) {
-      const noData = subjects.length === 0;
-      $('emptyTitle').textContent = noData ? 'Chưa có môn học nào' : 'Không tìm thấy kết quả';
-      $('emptyText').textContent = noData
-        ? 'Hãy thêm môn học đầu tiên của bạn để bắt đầu sắp xếp việc học.'
-        : 'Thử tìm bằng từ khóa khác nhé.';
-      $('btnAddEmpty').classList.toggle('d-none', !noData);
-    }
-
-    $('subjectBody').innerHTML = list.map((s, i) => `
-      <tr>
-        <td data-label="#">${i + 1}</td>
-        <td data-label="Môn học">
-          <span class="sf-subject"><span class="sf-avatar" style="--c:${safeColor(s.color)}">${esc(s.name.trim().charAt(0).toUpperCase())}</span><span class="sf-name">${esc(s.name)}</span></span>
-        </td>
-        <td data-label="Giáo viên">${s.teacher ? esc(s.teacher) : '<span class="sf-muted">Chưa cập nhật</span>'}</td>
-        <td data-label="Ngày tạo">${fmtDate(s.created_at)}</td>
-        <td class="text-end sf-actions">
-          <button type="button" class="btn sf-btn-outline sf-btn-sm" data-action="edit" data-id="${s.id}">
-            <i class="bi bi-pencil"></i>Sửa
-          </button>
-          <button type="button" class="btn sf-btn-outline sf-btn-sm" data-action="delete" data-id="${s.id}">
-            <i class="bi bi-trash"></i>Xóa
-          </button>
-        </td>
-      </tr>`).join('');
+  function updatePomoDisplay() {
+    const disp = $('pomo-time');
+    if (disp) disp.textContent = formatTime(totalSeconds);
   }
 
-  async function load() {
-    try {
-      subjects = await request(API);
-    } catch (err) {
-      subjects = [];
-      toast(err.message);
-    }
-    render();
-  }
-
-  // ---------- Chọn màu ----------
-  function selectedColor() {
-    const checked = document.querySelector('input[name="color"]:checked');
-    return checked ? checked.value : DEFAULT_COLOR;
-  }
-
-  function setColor(color) {
-    const c = safeColor(color);
-    let radio = [...document.querySelectorAll('input[name="color"]')]
-      .find(r => r.value.toLowerCase() === c.toLowerCase());
-
-    // Màu cũ không nằm trong bảng màu: thêm ô màu để không bị mất
-    if (!radio) {
-      const label = document.createElement('label');
-      label.className = 'sf-swatch';
-      label.style.setProperty('--c', c);
-      label.innerHTML = `<input type="radio" name="color" value="${c}"><span></span>`;
-      $('swatches').appendChild(label);
-      radio = label.querySelector('input');
-    }
-    radio.checked = true;
-  }
-
-  // ---------- Mở modal thêm / sửa ----------
-  function openForm(subject) {
-    form.classList.remove('was-validated');
-    form.reset();
-    $('subjectId').value = subject ? subject.id : '';
-    $('modalTitle').textContent = subject ? 'Sửa môn học' : 'Thêm môn học';
-    $('name').value = subject ? subject.name : '';
-    $('teacher').value = subject ? (subject.teacher || '') : '';
-    setColor(subject ? subject.color : DEFAULT_COLOR);
-    subjectModal.show();
-  }
-
-  $('subjectModal').addEventListener('shown.bs.modal', () => $('name').focus());
-
-  // ---------- Lưu (thêm hoặc sửa) ----------
-  form.addEventListener('submit', async e => {
-    e.preventDefault();
-    const name = $('name').value.trim();
-    if (!name || !form.checkValidity()) {
-      form.classList.add('was-validated');
+  function startPomo() {
+    const btn = $('btn-pomo-start');
+    if (isRunning) {
+      // pause
+      clearInterval(timerInterval);
+      timerInterval = null;
+      isRunning = false;
+      if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
       return;
     }
+    // start
+    isRunning = true;
+    if (btn) { btn.textContent = 'Pause'; btn.classList.add('running'); }
+    if (totalSeconds <= 0) totalSeconds = 25 * 60;
+    timerInterval = setInterval(() => {
+      if (totalSeconds > 0) {
+        totalSeconds--;
+        updatePomoDisplay();
+      } else {
+        clearInterval(timerInterval);
+        timerInterval = null;
+        isRunning = false;
+        if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
+        alert('Hoàn thành phiên Pomodoro! Hãy nghỉ ngơi một chút.');
+      }
+    }, 1000);
+  }
 
-    const id = $('subjectId').value;
-    const body = { name, teacher: $('teacher').value.trim(), color: selectedColor() };
-    const btn = $('btnSave');
-    btn.disabled = true;
+  function adjustPomo(deltaSeconds) {
+    if (isRunning) return; // không chỉnh khi đang chạy
+    totalSeconds = Math.max(0, totalSeconds + deltaSeconds);
+    updatePomoDisplay();
+  }
 
-    try {
-      await request(id ? `${API}/${id}` : API, {
-        method: id ? 'PUT' : 'POST',
-        body: JSON.stringify(body)
-      });
-      subjectModal.hide();
-      await load();
-      toast(id ? 'Đã cập nhật môn học' : 'Đã thêm môn học');
-    } catch (err) {
-      toast(err.message);
-    } finally {
-      btn.disabled = false;
-    }
-  });
+  function attachPomoHandlers() {
+    const startBtn = $('btn-pomo-start');
+    const plusBtn = $('btn-plus');
+    const minusBtn = $('btn-minus');
 
-  // ---------- Xóa ----------
-  $('btnConfirmDelete').addEventListener('click', async () => {
-    if (deleteId === null) return;
-    const btn = $('btnConfirmDelete');
-    btn.disabled = true;
-    try {
-      await request(`${API}/${deleteId}`, { method: 'DELETE' });
-      confirmModal.hide();
-      await load();
-      toast('Đã xóa môn học');
-    } catch (err) {
-      toast(err.message);
-    } finally {
-      btn.disabled = false;
-      deleteId = null;
-    }
-  });
+    if (startBtn) startBtn.addEventListener('click', startPomo);
+    if (plusBtn) plusBtn.addEventListener('click', () => adjustPomo(5 * 60));
+    if (minusBtn) minusBtn.addEventListener('click', () => adjustPomo(-5 * 60));
 
-  // ---------- Sự kiện ----------
-  $('btnAdd').addEventListener('click', () => openForm(null));
-  $('btnAddEmpty').addEventListener('click', () => openForm(null));
-  $('searchInput').addEventListener('input', render);
+    // Init display
+    updatePomoDisplay();
+  }
 
-  $('subjectBody').addEventListener('click', e => {
-    const btn = e.target.closest('button[data-action]');
-    if (!btn) return;
-    const subject = subjects.find(s => s.id === Number(btn.dataset.id));
-    if (!subject) return;
+  // ---------- Init ----------
+  function init() {
+    renderSubjects();
+    attachListHandlers();
+    attachSearchHandler();
+    attachAddButtons();
+    attachPomoHandlers();
 
-    if (btn.dataset.action === 'edit') {
-      openForm(subject);
-    } else {
-      deleteId = subject.id;
-      $('confirmName').textContent = subject.name;
-      confirmModal.show();
-    }
-  });
+    // nếu muốn, bạn có thể expose subjects ra window để debug:
+    // window._subjects = subjects;
+  }
 
-  load();
+  // Khi DOM sẵn sàng
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
 })();
