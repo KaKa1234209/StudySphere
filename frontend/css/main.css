@@ -1,8 +1,10 @@
-:root{--bg:#f6f3fc;--surface:#fff;--ink:#2b2340;--muted:#7a7092;--line:#e4dcf4;--p:#8b6fd6;--p-dark:#6f52bd;--p-soft:#ece6fa;--danger:#c0504d}
-*{box-sizing:border-box}
+:root{--bg:#f7f5fd;--surface:#fff;--ink:#2b2340;--muted:#7a7092;--line:#e4dcf4;--p:#8c7ad0;--p-dark:#6a58b0;--p-light:#a99be8;--p-soft:#ece8fa;--danger:#c0504d}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 "Be Vietnam Pro","Segoe UI",system-ui,sans-serif}
 .top{display:flex;align-items:center;gap:16px;padding:14px 28px;background:var(--surface);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.brand{font-weight:700;font-size:20px;color:var(--p-dark);text-decoration:none}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-icon{height:40px;width:40px;object-fit:contain}
+.brand-name{font-weight:800;font-size:22px;letter-spacing:-.3px;color:var(--p-dark)}
+.brand-name span{color:var(--p-light)}
 .top .grow{flex:1}
 .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 60px}
 .btn{border:0;border-radius:10px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;background:var(--p);color:#fff;text-decoration:none;display:inline-block}
