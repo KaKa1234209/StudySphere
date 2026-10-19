@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NoteHub – Soạn ghi chú</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/notehub.css">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="notes.html">NoteHub</a><span class="grow"></span>
+    <a class="btn ghost" href="notes.html">Quay lại danh sách</a>
+  </header>
+  <main class="wrap">
+    <div class="editor">
+      <input id="title" class="title" placeholder="Tiêu đề ghi chú" aria-label="Tiêu đề">
+      <div class="row">
+        <label>Môn học <select id="subject"></select></label>
+        <label>Nhiệm vụ liên kết (mã nhiệm vụ) <input id="task" type="number" min="1" placeholder="VD: 12"></label>
+      </div>
+      <label>Thẻ (cách nhau bằng dấu phẩy) <input id="tags" placeholder="ôn thi, công thức"></label>
+      <label>Nội dung <textarea id="content" placeholder="Viết ghi chú của bạn…"></textarea></label>
+      <div class="actions">
+        <button class="btn" id="save">Lưu ghi chú</button>
+        <button class="btn ghost" id="pin">Ghim ghi chú</button>
+        <button class="btn danger" id="del" hidden>Xóa</button>
+      </div>
+    </div>
+  </main>
+  <script src="js/components.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/note_editor.js"></script>
+</body>
+</html>
