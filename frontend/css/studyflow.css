@@ -349,3 +349,19 @@ input:checked + .slider:before { transform: translateX(18px); }
 .app-icon:hover .app-del,.app-del:focus-visible{opacity:1}
 @media(hover:none){.app-del{opacity:1}}
 .block-note{margin:12px 0 0;font-size:12px;color:#8a819e}
+
+/* ===== Focus Mode: bớt xao nhãng ===== */
+body.focus-mode .sidebar,
+body.focus-mode .bell-btn{display:none}
+body.focus-mode .dashboard-container{display:block}
+body.focus-mode .main-wrapper{margin-left:0;width:100%;max-width:none}
+
+/* Trang Tổng quan: chỉ giữ nhiệm vụ và Pomodoro */
+body.focus-mode .banner-card,
+body.focus-mode .chart-card,
+body.focus-mode .performance-card,
+body.focus-mode .blocklist-card{display:none}
+body.focus-mode .dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr));max-width:1100px;margin:0 auto}
+body.focus-mode .tasks-card,
+body.focus-mode .pomodoro-card{grid-column:auto;grid-row:auto}
+@media(max-width:800px){body.focus-mode .dashboard-grid{grid-template-columns:1fr}}

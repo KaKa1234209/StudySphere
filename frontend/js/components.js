@@ -105,9 +105,9 @@ function renderTopbar(title) {
     <div class="header-actions">
       <div class="focus-toggle-wrapper">
         <span>Focus Mode</span>
-        <label class="switch"><input type="checkbox" checked><span class="slider round"></span></label>
+        <label class="switch"><input type="checkbox" id="focusToggle"><span class="slider round"></span></label>
       </div>
-      <button class="icon-btn" aria-label="Thông báo"><i class="fa-regular fa-bell"></i></button>
+      <button class="icon-btn bell-btn" aria-label="Thông báo"><i class="fa-regular fa-bell"></i></button>
       <a class="user-profile" href="profile.html">
         <img src="${user.avatar || avatarFor(user.name)}" alt="Ảnh đại diện">
         <div class="user-info"><span class="name">${esc(user.name)}</span><span class="role">Sinh viên</span></div>
@@ -115,10 +115,26 @@ function renderTopbar(title) {
     </div>`;
 }
 
+/* ===== Focus Mode ===== */
+const FOCUS_KEY = "studysphere.focus";
+
+function setupFocusMode() {
+  const toggle = document.getElementById("focusToggle");
+  if (!toggle) return;
+  const on = localStorage.getItem(FOCUS_KEY) === "1";
+  document.body.classList.toggle("focus-mode", on);
+  toggle.checked = on;
+  toggle.addEventListener("change", () => {
+    document.body.classList.toggle("focus-mode", toggle.checked);
+    localStorage.setItem(FOCUS_KEY, toggle.checked ? "1" : "0");
+    toast(toggle.checked ? "Đã bật Focus Mode" : "Đã tắt Focus Mode");
+  });
+}
+
 // Mỗi trang chỉ cần gọi 1 dòng này. Tự chờ trang tải xong nếu gọi quá sớm.
 function renderLayout(active, title) {
   requireLogin();
-  const run = () => { renderSidebar(active); renderTopbar(title); };
+  const run = () => { renderSidebar(active); renderTopbar(title); setupFocusMode(); };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
   else run();
 }
