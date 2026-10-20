@@ -3,32 +3,39 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NoteHub _ Soạn ghi chú</title>
+  <title>StudySphere - Soạn ghi chú</title>
   <link rel="icon" type="image/png" href="images/favicon.png">
-  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/studyflow.css">
   <link rel="stylesheet" href="css/notehub.css">
 </head>
 <body>
-  <header id="navbar"></header>
-  <main class="wrap">
-    <div class="editor">
-      <input id="title" class="title" placeholder="Tiêu đề ghi chú" aria-label="Tiêu đề">
-      <div class="row">
-        <label>Môn học <select id="subject"></select></label>
-        <label>Nhiệm vụ liên kết (mã nhiệm vụ) <input id="task" type="number" min="1" placeholder="VD: 12"></label>
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main-wrapper">
+      <header class="top-header" id="topbar"></header>
+      <div class="page-body">
+        <div class="editor">
+          <input id="title" class="title" placeholder="Tiêu đề ghi chú" aria-label="Tiêu đề">
+          <div class="row">
+            <label>Môn học <select id="subject"></select></label>
+            <label>Nhiệm vụ liên kết (mã nhiệm vụ) <input id="task" type="number" min="1" placeholder="VD: 12"></label>
+          </div>
+          <label>Thẻ (cách nhau bằng dấu phẩy) <input id="tags" placeholder="ôn thi, công thức"></label>
+          <label>Nội dung <textarea id="content" placeholder="Viết ghi chú của bạn…"></textarea></label>
+          <div class="actions">
+            <button class="btn" id="save">Lưu ghi chú</button>
+            <button class="btn ghost" id="pin">Ghim ghi chú</button>
+            <button class="btn danger" id="del" hidden>Xóa</button>
+            <a class="btn ghost" href="notes.html">Quay lại</a>
+          </div>
+        </div>
       </div>
-      <label>Thẻ (cách nhau bằng dấu phẩy) <input id="tags" placeholder="ôn thi, công thức"></label>
-      <label>Nội dung <textarea id="content" placeholder="Viết ghi chú của bạn…"></textarea></label>
-      <div class="actions">
-        <button class="btn" id="save">Lưu ghi chú</button>
-        <button class="btn ghost" id="pin">Ghim ghi chú</button>
-        <button class="btn danger" id="del" hidden>Xóa</button>
-      </div>
-    </div>
-  </main>
+    </main>
+  </div>
   <script src="js/components.js"></script>
   <script src="js/api.js"></script>
   <script src="js/note-editor.js"></script>
-  <script>renderNavbar("notes");</script>
 </body>
 </html>

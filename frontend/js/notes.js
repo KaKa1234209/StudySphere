@@ -1,3 +1,4 @@
+renderLayout("notes", "NoteHub / Ghi chú");
 const $ = id => document.getElementById(id);
 const state = { q: "", tag: "", subjectId: "" };    // bộ lọc hiện tại
 
@@ -13,7 +14,7 @@ function highlight(text) {
 
 // HTML của một thẻ ghi chú
 function noteCard(n) {
-  const subject = SUBJECTS.find(s => s.id == n.subject_id);
+  const subject = getSubjects().find(s => s.id == n.subject_id);
   return `
   <a class="card" href="note-editor.html?id=${n.id}">
     <h3>

@@ -3,25 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>NoteHub _ Ghi chú</title>
-  <link rel="icon" type="images/png" href="images/favicon.png">
-  <link rel="stylesheet" href="css/main.css">
+  <title>StudySphere - Ghi chú</title>
+  <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/studyflow.css">
   <link rel="stylesheet" href="css/notehub.css">
 </head>
 <body>
-  <header id="navbar"></header>
-  <main class="wrap">
-    <div class="bar">
-      <input id="q" type="search" placeholder="Tìm theo tiêu đề, nội dung hoặc thẻ…" aria-label="Tìm kiếm">
-      <select id="subject" aria-label="Môn học"></select>
-      <a class="btn" href="note-editor.html">+ Tạo ghi chú</a>
-    </div>
-    <div class="chips" id="tags"></div>
-    <div id="list"></div>
-  </main>
+  <div class="dashboard-container">
+    <aside class="sidebar" id="sidebar"></aside>
+    <main class="main-wrapper">
+      <header class="top-header" id="topbar"></header>
+      <div class="page-body">
+        <div class="bar">
+          <input id="q" type="search" placeholder="Tìm theo tiêu đề, nội dung hoặc thẻ…" aria-label="Tìm kiếm">
+          <select id="subject" aria-label="Môn học"></select>
+          <a class="btn" href="note-editor.html">+ Tạo ghi chú</a>
+        </div>
+        <div class="chips" id="tags"></div>
+        <div id="list"></div>
+      </div>
+    </main>
+  </div>
   <script src="js/components.js"></script>
   <script src="js/api.js"></script>
   <script src="js/notes.js"></script>
-  <script>renderNavbar("notes");</script>
 </body>
 </html>

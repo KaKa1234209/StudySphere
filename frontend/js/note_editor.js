@@ -1,3 +1,5 @@
+renderLayout("notes", "NoteHub / Soạn ghi chú");
+
 const $ = id => document.getElementById(id);
 const noteId = new URLSearchParams(location.search).get("id");
 let pinned = 0;

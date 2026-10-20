@@ -14,10 +14,19 @@ const SUBJECTS = [
   { id: 1, name: "Toán" }, { id: 2, name: "Ngữ văn" },
   { id: 3, name: "Tiếng Anh" }, { id: 4, name: "Lập trình" },
 ];
+
+// Lấy môn học người dùng đã tạo ở trang Môn học; chưa có thì dùng danh sách mẫu
+function getSubjects() {
+  try {
+    const saved = JSON.parse(localStorage.getItem("studysphere.subjects"));
+    if (Array.isArray(saved) && saved.length) return saved;
+  } catch {}
+  return SUBJECTS;
+}
 function fillSubjects(select, withAll) {
   select.innerHTML =
     `<option value="">${withAll ? "Tất cả môn học" : "Không chọn"}</option>` +
-    SUBJECTS.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+    getSubjects().map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
 }
 
 /* ===== Đăng nhập ===== */

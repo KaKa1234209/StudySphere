@@ -110,5 +110,7 @@ renderLayout("subjects", "StudyFlow / Môn học");
     }
   });
 
+    // Bấm vào nền tối bên ngoài thì đóng hộp thoại
+  $("dlg").addEventListener("click", e => { if (e.target === $("dlg")) $("dlg").close(); });
   render();
 })();
