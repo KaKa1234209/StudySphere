@@ -63,7 +63,7 @@ function renderSidebar() {
   box.innerHTML = `
     <div class="sb-head">
       <a class="sb-brand" href="dashboard.html">
-        <span class="sb-logo"><img src="images/logo-mark.svg" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-graduation-cap'}))"></span>
+        <span class="sb-logo"><img src="images/favicon.png" alt="StudySphere"></span>
         <span>Study<b>Sphere</b></span>
       </a>
       <button type="button" class="sb-close" id="btnCloseMenu" aria-label="Đóng menu"><i class="fa-solid fa-xmark"></i></button>
