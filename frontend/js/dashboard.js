@@ -1,258 +1,414 @@
-renderLayout("overview", "Tổng quan");
+// ==========================================================
+// dashboard.js – Trang Tổng quan
+// Lịch, nhiệm vụ hôm nay, biểu đồ tuần, Pomodoro, danh sách chặn.
+// Dữ liệu tạm lưu localStorage:
+//   sf_tasks      – dùng chung với trang Nhiệm vụ
+//   sf_subjects   – dùng chung với trang Môn học
+//   sf_pomodoro   – các phiên học đã hoàn thành
+//   sf_blocklist  – ứng dụng muốn tránh khi học
+// ==========================================================
+(() => {
+  const TASK_KEY = "sf_tasks";
+  const SUBJECT_KEY = "sf_subjects";
+  const POMO_KEY = "sf_pomodoro";
+  const BLOCK_KEY = "sf_blocklist";
 
-(function () {
   const $ = id => document.getElementById(id);
+  const pad2 = n => String(n).padStart(2, "0");
+  const dateKey = d => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+  const todayKey = () => dateKey(new Date());
 
-  /* ===== Tiện ích đọc/ghi dữ liệu và ngày ===== */
   const read = (key, fallback) => {
     try { const v = JSON.parse(localStorage.getItem(key)); return v ?? fallback; } catch { return fallback; }
   };
   const write = (key, value) => localStorage.setItem(key, JSON.stringify(value));
-  const pad = n => String(n).padStart(2, "0");
-  const dateKey = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;   // theo giờ máy, không lệch múi giờ
-  const today = () => dateKey(new Date());
 
-  const TASKS_KEY = "studysphere.tasks";
-  const SESSIONS_KEY = "studysphere.sessions";
-  const BLOCKS_KEY = "studysphere.blocklist";
+  const CATEGORIES = {
+    Work: { label: "Work", cls: "tag-work" },
+    Study: { label: "Study", cls: "tag-study" },
+    Personal: { label: "Personal", cls: "tag-personal" },
+  };
 
-  /* ========== 1. LỊCH ========== */
+  let tasks = read(TASK_KEY, []);
+  let sessions = read(POMO_KEY, []);
+  let blocked = read(BLOCK_KEY, ["Telegram", "Instagram", "X"]);
+
+  // ---------- Banner ----------
+  function renderBanner() {
+    const h = new Date().getHours();
+    const part = h < 12 ? "Chào buổi sáng" : h < 18 ? "Chào buổi chiều" : "Chào buổi tối";
+    const user = currentUser();
+    const first = (user.name || user.full_name || "").trim().split(" ").pop();
+    $("banner-hello").textContent = first ? `${part}, ${first}!` : `${part}!`;
+
+    const open = todayTasks().filter(t => t.status !== "done").length;
+    $("banner-text").textContent = todayTasks().length === 0
+      ? "Hôm nay bạn chưa có nhiệm vụ nào. Thêm kế hoạch bên phải để bắt đầu nhé."
+      : open === 0
+        ? "Tuyệt vời! Bạn đã hoàn thành mọi nhiệm vụ hôm nay."
+        : `Hôm nay bạn còn ${open} nhiệm vụ cần hoàn thành.`;
+  }
+
+  // ---------- Lịch nhỏ ----------
   function renderCalendar() {
     const now = new Date();
-    const year = now.getFullYear(), month = now.getMonth(), todayNum = now.getDate();
-    $("calendar-month-title").textContent = `Tháng ${month + 1}, ${year}`;
+    const y = now.getFullYear();
+    const m = now.getMonth();
+    $("calendar-month-title").textContent = `Tháng ${m + 1}, ${y}`;
 
-    const box = $("calendar-days");
-    box.innerHTML = "";
-    const first = (new Date(year, month, 1).getDay() + 6) % 7;      // thứ 2 là cột đầu
-    const total = new Date(year, month + 1, 0).getDate();
-    const prevTotal = new Date(year, month, 0).getDate();
-    for (let i = first; i > 0; i--) box.insertAdjacentHTML("beforeend", `<span class="fade">${prevTotal - i + 1}</span>`);
-    for (let d = 1; d <= total; d++) box.insertAdjacentHTML("beforeend", `<span class="${d === todayNum ? "active-day" : ""}">${d}</span>`);
+    const lead = (new Date(y, m, 1).getDay() + 6) % 7;     // Thứ 2 là cột đầu
+    const total = new Date(y, m + 1, 0).getDate();
+    const withTask = new Set(tasks.map(t => t.due_date));
+
+    let html = '<span class="cal-day empty"></span>'.repeat(lead);
+    for (let d = 1; d <= total; d++) {
+      const key = `${y}-${pad2(m + 1)}-${pad2(d)}`;
+      const cls = ["cal-day", d === now.getDate() ? "today" : d < now.getDate() ? "past" : "", withTask.has(key) ? "has-task" : ""].join(" ");
+      html += `<span class="${cls}">${d}</span>`;
+    }
+    $("calendar-days").innerHTML = html;
   }
 
-  /* ========== 2. NHIỆM VỤ HÔM NAY ==========
-     Mỗi nhiệm vụ: { id, title, tag, done, date, time }
-     Lưu ở khóa studysphere.tasks để trang Nhiệm vụ (Thành viên 1) dùng chung. */
-  let tasks = read(TASKS_KEY, []);
-  const saveTasks = () => write(TASKS_KEY, tasks);
-  const todayTasks = () => tasks.filter(t => t.date === today());
+  // ---------- Nhiệm vụ hôm nay ----------
+  const subjectName = id => {
+    const list = read(SUBJECT_KEY, []);
+    const s = list.find(x => x.id === id);
+    return s ? s.name : "";
+  };
+
+  const todayTasks = () => tasks
+    .filter(t => t.due_date === todayKey())
+    .sort((a, b) => (a.due_time || "99:99").localeCompare(b.due_time || "99:99") || a.id - b.id);
 
   function renderTasks() {
-    const list = todayTasks().sort((a, b) => (a.time || "99:99").localeCompare(b.time || "99:99") || a.id - b.id);
-    $("task-list").innerHTML = list.length
-      ? list.map(t => `
-        <li class="task-item ${t.done ? "done" : ""}">
-          <input type="checkbox" id="t${t.id}" data-id="${t.id}" ${t.done ? "checked" : ""}>
-          <label for="t${t.id}"><span class="task-name">${esc(t.title)}</span><span class="task-tag">• ${esc(t.tag)}</span></label>
-          <span class="task-time">${t.time ? esc(t.time) : "Hôm nay"}</span>
-          <button class="task-del" data-del="${t.id}" aria-label="Xóa nhiệm vụ ${esc(t.title)}"><i class="fa-regular fa-trash-can"></i></button>
-        </li>`).join("")
-      : `<li class="task-empty">Hôm nay chưa có nhiệm vụ nào. Hãy thêm nhiệm vụ đầu tiên bên dưới.</li>`;
-    renderStats();
+    const list = todayTasks();
+    if (list.length === 0) {
+      $("task-list").innerHTML = '<li class="task-empty">Chưa có nhiệm vụ nào hôm nay.</li>';
+    } else {
+      $("task-list").innerHTML = list.map(t => {
+        const cat = CATEGORIES[t.category];
+        const label = cat ? cat.label : (subjectName(t.subject_id) || "Study");
+        const cls = cat ? cat.cls : "tag-study";
+        return `
+        <li class="task-item ${t.status === "done" ? "done" : ""}" data-id="${t.id}">
+          <label class="task-check">
+            <input type="checkbox" ${t.status === "done" ? "checked" : ""} aria-label="Hoàn thành: ${esc(t.title)}">
+            <span class="check-box"><i class="fa-solid fa-check"></i></span>
+          </label>
+          <div class="task-info">
+            <div class="task-title">${esc(t.title)}</div>
+            <div class="task-tag ${cls}"><i class="dot"></i>${esc(label)}</div>
+          </div>
+          ${t.due_time ? `<span class="task-time">${esc(t.due_time)}</span>` : ""}
+          <button type="button" class="task-del" aria-label="Xóa nhiệm vụ"><i class="fa-solid fa-trash"></i></button>
+        </li>`;
+      }).join("");
+    }
+    renderBanner();
+    renderPerformance();
+    renderCalendar();
   }
 
+  function saveTasks() { write(TASK_KEY, tasks); }
+
   function addTask() {
-    const title = $("task-input").value.trim();
-    if (!title) return;
-    const id = tasks.length ? Math.max(...tasks.map(t => t.id)) + 1 : 1;
-    tasks.push({ id, title, tag: $("task-category").value, done: false, date: today(), time: $("task-time").value || "" });
+    const input = $("task-input");
+    const title = input.value.trim();
+    if (!title) { input.focus(); return; }
+
+    tasks.push({
+      id: Math.max(0, ...tasks.map(t => t.id)) + 1,
+      title,
+      description: "",
+      subject_id: null,
+      category: $("task-category").value,
+      due_date: todayKey(),
+      due_time: $("task-time").hidden ? null : ($("task-time").value || null),
+      priority: "medium",
+      status: "todo",
+      created_at: new Date().toISOString(),
+    });
     saveTasks();
-    $("task-input").value = "";
+
+    input.value = "";
     $("task-time").value = "";
     $("task-time").hidden = true;
+    $("btn-task-time").classList.remove("on");
     renderTasks();
+    input.focus();
   }
 
   $("btn-add-task").addEventListener("click", addTask);
   $("task-input").addEventListener("keydown", e => { if (e.key === "Enter") addTask(); });
 
-  // Tick hoàn thành
-  $("task-list").addEventListener("change", e => {
-    const box = e.target.closest("[data-id]");
-    if (!box) return;
-    const t = tasks.find(x => x.id === Number(box.dataset.id));
-    if (t) { t.done = box.checked; saveTasks(); renderTasks(); }
+  $("btn-task-time").addEventListener("click", () => {
+    const box = $("task-time");
+    box.hidden = !box.hidden;
+    $("btn-task-time").classList.toggle("on", !box.hidden);
+    if (!box.hidden) box.focus();
+  });
+  $("btn-task-tag").addEventListener("click", () => {
+    const sel = $("task-category");
+    sel.focus();
+    if (sel.showPicker) { try { sel.showPicker(); } catch { /* bỏ qua */ } }
   });
 
-  // Xóa nhiệm vụ
-  $("task-list").addEventListener("click", e => {
-    const del = e.target.closest("[data-del]");
-    if (!del) return;
-    tasks = tasks.filter(x => x.id !== Number(del.dataset.del));
+  $("task-list").addEventListener("change", e => {
+    const li = e.target.closest(".task-item");
+    if (!li || e.target.type !== "checkbox") return;
+    const t = tasks.find(x => x.id === Number(li.dataset.id));
+    if (!t) return;
+    t.status = e.target.checked ? "done" : "todo";
     saveTasks();
     renderTasks();
   });
-
-  // Nút đồng hồ: hiện/ẩn ô chọn giờ. Nút nhãn: mở danh sách nhãn.
-  $("btn-task-time").addEventListener("click", () => {
-    const input = $("task-time");
-    input.hidden = !input.hidden;
-    if (!input.hidden) input.focus();
-  });
-  $("btn-task-tag").addEventListener("click", () => {
-    const select = $("task-category");
-    select.focus();
-    try { select.showPicker(); } catch {}
+  $("task-list").addEventListener("click", e => {
+    const btn = e.target.closest(".task-del");
+    if (!btn) return;
+    const id = Number(btn.closest(".task-item").dataset.id);
+    tasks = tasks.filter(t => t.id !== id);
+    saveTasks();
+    renderTasks();
+    toast("Đã xóa nhiệm vụ");
   });
 
-  /* ========== 3. THỐNG KÊ NHIỆM VỤ (vòng tròn % + banner) ========== */
-  function renderStats() {
+  // ---------- Hiệu suất hôm nay ----------
+  function renderPerformance() {
     const list = todayTasks();
-    const total = list.length, done = list.filter(t => t.done).length;
-    const pct = total ? Math.round(done / total * 100) : 0;
+    const done = list.filter(t => t.status === "done").length;
+    const pct = list.length ? Math.round((done / list.length) * 100) : 0;
 
-    $("ring").style.strokeDashoffset = 301.59 * (1 - pct / 100);   // 301.59 = chu vi vòng tròn r=48
+    const svg = document.querySelector(".progress-ring");
+    if (svg && !svg.getAttribute("viewBox")) svg.setAttribute("viewBox", "0 0 120 120");
+
+    const circumference = 2 * Math.PI * 48;
+    $("ring").style.strokeDasharray = circumference;
+    $("ring").style.strokeDashoffset = circumference * (1 - pct / 100);
     $("ring-pct").textContent = pct + "%";
-    $("ring-legend").textContent = total ? ` ${done}/${total} nhiệm vụ hoàn thành` : " Chưa có nhiệm vụ";
-
-    const left = total - done;
-    $("banner-text").textContent = !total
-      ? "Hôm nay bạn chưa có nhiệm vụ nào. Hãy thêm một nhiệm vụ để bắt đầu!"
-      : left
-        ? `Bạn còn ${left} nhiệm vụ cần hoàn thành hôm nay.`
-        : "Tuyệt vời! Bạn đã hoàn thành mọi nhiệm vụ hôm nay.";
+    $("ring-legend").textContent = list.length
+      ? `${done}/${list.length} nhiệm vụ đã hoàn thành`
+      : "Chưa có nhiệm vụ hôm nay";
   }
 
-  /* ========== 4. BIỂU ĐỒ TUẦN (từ các phiên Pomodoro) ========== */
-  const DAY_LABELS = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
-
+  // ---------- Biểu đồ tuần ----------
   function renderChart() {
-    const sessions = read(SESSIONS_KEY, []);
-    const now = new Date();
-    const monday = new Date(now);
-    monday.setDate(now.getDate() - ((now.getDay() + 6) % 7));
-
-    const secs = DAY_LABELS.map((_, i) => {
+    const monday = new Date();
+    monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
+    const days = Array.from({ length: 7 }, (_, i) => {
       const d = new Date(monday);
       d.setDate(monday.getDate() + i);
-      const k = dateKey(d);
-      return sessions.filter(s => s.date === k).reduce((sum, s) => sum + s.seconds, 0);
+      return dateKey(d);
     });
+    const minutes = days.map(k => sessions.filter(s => s.date === k).reduce((sum, s) => sum + s.minutes, 0));
+    const maxHours = Math.max(1, Math.ceil(Math.max(...minutes) / 60));
+    const labels = ["T2", "T3", "T4", "T5", "T6", "T7", "CN"];
+    const today = todayKey();
 
-    const scale = Math.max(3600, Math.ceil(Math.max(...secs) / 3600) * 3600);   // trần biểu đồ, tối thiểu 1h
-    $("chart-max").textContent = scale / 3600 + "h";
-    $("bar-chart").innerHTML = secs.map((s, i) => `
-      <div class="bar-col" title="${DAY_LABELS[i]}: ${Math.floor(s / 60)} phút">
-        <div class="bar-track"><div class="bar-fill" style="height:${Math.round(s / scale * 100)}%"></div></div>
-        <span>${DAY_LABELS[i]}</span>
-      </div>`).join("");
-
-    const todayMin = Math.floor(secs[(now.getDay() + 6) % 7] / 60);
-    $("pomo-total").textContent = `Hôm nay bạn đã tập trung ${todayMin} phút`;
+    $("chart-max").textContent = maxHours + "h";
+    $("bar-chart").innerHTML = days.map((k, i) => {
+      const pct = minutes[i] ? Math.max(7, (minutes[i] / (maxHours * 60)) * 100) : 0;
+      return `
+      <div class="bar-col ${k === today ? "today" : ""}" title="${labels[i]}: ${minutes[i]} phút">
+        <div class="bar-track"><div class="bar-fill" style="height:${pct}%"></div></div>
+        <span class="bar-label">${labels[i]}</span>
+      </div>`;
+    }).join("");
   }
 
-  /* ========== 5. POMODORO ========== */
-  const DEFAULT_SECONDS = 25 * 60;
-  let remaining = DEFAULT_SECONDS;   // số giây còn lại
-  let runStartRemaining = 0;         // số giây còn lại lúc bấm Start (để tính đã học bao lâu)
-  let endAt = 0, ticker = null;
-  const startBtn = $("btn-pomo-start");
+  // ---------- Pomodoro ----------
+  const DEFAULT_SUBJECTS = ["Toán học", "Ngôn ngữ lập trình", "Cơ sở dữ liệu", "Mạng máy tính", "Thiết kế web", "Tiếng Anh"];
+  const pomo = { minutes: 25, running: false, startedAt: 0, endAt: 0, timer: null };
 
-  const showTime = () => { $("pomo-time").textContent = `${pad(Math.floor(remaining / 60))}:${pad(remaining % 60)}`; };
-
-  // Ô chọn môn lấy từ trang Môn học
   function renderPomoSubjects() {
-    const subjects = read("studysphere.subjects", []);
-    $("pomo-subject").innerHTML = subjects.length
-      ? subjects.map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("")
-      : `<option value="">Chưa có môn học</option>`;
+    const stored = read(SUBJECT_KEY, null);
+    const names = stored ? stored.map(s => s.name) : DEFAULT_SUBJECTS;
+    $("pomo-subject").innerHTML = ['<option value="Tự học">Tự học</option>']
+      .concat(names.map(n => `<option value="${esc(n)}">${esc(n)}</option>`)).join("");
   }
 
-  // Ghi lại thời gian đã học của lần chạy này
-  function logSession(seconds) {
-    if (seconds < 1) return;
-    const sessions = read(SESSIONS_KEY, []);
-    sessions.push({ date: today(), seconds, subjectId: $("pomo-subject").value || null });
-    write(SESSIONS_KEY, sessions);
+  function fmtClock(ms) {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return `${pad2(Math.floor(s / 60))}:${pad2(s % 60)}`;
+  }
+
+  function renderPomoTotal() {
+    const total = sessions.filter(s => s.date === todayKey()).reduce((sum, s) => sum + s.minutes, 0);
+    const h = Math.floor(total / 60);
+    const m = total % 60;
+    $("pomo-total").textContent = total === 0
+      ? "Hôm nay bạn chưa học phút nào"
+      : `Hôm nay: ${h ? h + " giờ " : ""}${m ? m + " phút" : ""} tập trung`.trim();
+  }
+
+  function recordSession(minutes) {
+    if (minutes < 1) return;
+    sessions.push({ date: todayKey(), minutes, subject: $("pomo-subject").value });
+    write(POMO_KEY, sessions);
     renderChart();
+    renderPomoTotal();
   }
 
-  function stopTimer(finished) {
-    clearInterval(ticker);
-    ticker = null;
-    logSession(runStartRemaining - remaining);
-    startBtn.textContent = "Start";
-    startBtn.classList.remove("running");
-    if (finished) {
-      remaining = DEFAULT_SECONDS;
-      showTime();
-      toast("Hoàn thành phiên Pomodoro! Hãy nghỉ ngơi một chút.");
+  function setRunningUi(running) {
+    pomo.running = running;
+    $("pomo-card").classList.toggle("running", running);
+    $("btn-pomo-start").textContent = running ? "Dừng" : "Bắt đầu";
+    $("btn-minus").disabled = running;
+    $("btn-plus").disabled = running;
+    $("pomo-subject").disabled = running;
+    if (!running) document.title = "StudySphere - Tổng quan";
+  }
+
+  function beep() {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = 880;
+      gain.gain.setValueAtTime(.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(.001, ctx.currentTime + .8);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + .8);
+    } catch { /* trình duyệt không cho phát âm thanh */ }
+  }
+
+  function tick() {
+    const left = pomo.endAt - Date.now();
+    if (left <= 0) {
+      clearInterval(pomo.timer);
+      recordSession(pomo.minutes);
+      setRunningUi(false);
+      $("pomo-time").textContent = fmtClock(pomo.minutes * 60000);
+      toast("Hết giờ! Bạn đã hoàn thành một phiên học 🎉");
+      beep();
+      return;
     }
+    $("pomo-time").textContent = fmtClock(left);
+    document.title = `${fmtClock(left)} · StudySphere`;
   }
 
-  startBtn.addEventListener("click", () => {
-    if (ticker) return stopTimer(false);                      // đang chạy -> tạm dừng
-    if (remaining <= 0) remaining = DEFAULT_SECONDS;
-    runStartRemaining = remaining;
-    endAt = Date.now() + remaining * 1000;                    // tính theo đồng hồ thật, tab ở nền vẫn đúng
-    startBtn.textContent = "Pause";
-    startBtn.classList.add("running");
-    ticker = setInterval(() => {
-      remaining = Math.max(0, Math.ceil((endAt - Date.now()) / 1000));
-      showTime();
-      if (remaining <= 0) stopTimer(true);
-    }, 250);
+  function startPomo() {
+    pomo.startedAt = Date.now();
+    pomo.endAt = pomo.startedAt + pomo.minutes * 60000;
+    setRunningUi(true);
+    tick();
+    pomo.timer = setInterval(tick, 250);
+  }
+
+  function stopPomo() {
+    clearInterval(pomo.timer);
+    recordSession(Math.floor((Date.now() - pomo.startedAt) / 60000));
+    setRunningUi(false);
+    $("pomo-time").textContent = fmtClock(pomo.minutes * 60000);
+  }
+
+  $("btn-pomo-start").addEventListener("click", () => (pomo.running ? stopPomo() : startPomo()));
+  $("btn-minus").addEventListener("click", () => {
+    pomo.minutes = Math.max(5, pomo.minutes - 5);
+    $("pomo-time").textContent = fmtClock(pomo.minutes * 60000);
+  });
+  $("btn-plus").addEventListener("click", () => {
+    pomo.minutes = Math.min(120, pomo.minutes + 5);
+    $("pomo-time").textContent = fmtClock(pomo.minutes * 60000);
   });
 
-  $("btn-plus").addEventListener("click", () => { if (!ticker) { remaining += 300; showTime(); } });
-  $("btn-minus").addEventListener("click", () => { if (!ticker && remaining > 300) { remaining -= 300; showTime(); } });
-
-  // Rời trang khi đang chạy thì vẫn lưu phần đã học
-  window.addEventListener("pagehide", () => { if (ticker) logSession(runStartRemaining - remaining); });
-
-  // Nút "Ready!" trên banner: cuộn xuống Pomodoro và bắt đầu
+  // Nút "Ready!" – cuộn tới Pomodoro và bắt đầu học
   $("btn-ready").addEventListener("click", () => {
-    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
-    $("pomo-card").scrollIntoView({ behavior: calm ? "auto" : "smooth", block: "center" });
-    if (!ticker) startBtn.click();
+    $("pomo-card").scrollIntoView({ behavior: "smooth", block: "center" });
+    if (!pomo.running) startPomo();
   });
 
-  /* ========== 6. BLOCK LIST ========== */
-  const DEFAULT_BLOCKS = [{ id: 1, name: "Telegram" }, { id: 2, name: "Instagram" }, { id: 3, name: "X (Twitter)" }];
-  const BLOCK_ICONS = {
-    telegram: "fa-brands fa-telegram", instagram: "fa-brands fa-instagram",
-    x: "fa-brands fa-x-twitter", twitter: "fa-brands fa-x-twitter", "x (twitter)": "fa-brands fa-x-twitter",
-    facebook: "fa-brands fa-facebook", tiktok: "fa-brands fa-tiktok", youtube: "fa-brands fa-youtube",
-    discord: "fa-brands fa-discord", reddit: "fa-brands fa-reddit",
+  // ---------- Danh sách chặn ----------
+  const BRANDS = {
+    telegram: ["fa-brands fa-telegram", "#229ed9"],
+    instagram: ["fa-brands fa-instagram", "#e1306c"],
+    x: ["fa-brands fa-x-twitter", "#111111"],
+    twitter: ["fa-brands fa-x-twitter", "#111111"],
+    facebook: ["fa-brands fa-facebook", "#1877f2"],
+    messenger: ["fa-brands fa-facebook-messenger", "#0084ff"],
+    tiktok: ["fa-brands fa-tiktok", "#111111"],
+    youtube: ["fa-brands fa-youtube", "#ff0000"],
+    discord: ["fa-brands fa-discord", "#5865f2"],
+    reddit: ["fa-brands fa-reddit", "#ff4500"],
+    whatsapp: ["fa-brands fa-whatsapp", "#25d366"],
+    snapchat: ["fa-brands fa-snapchat", "#f5c400"],
+    twitch: ["fa-brands fa-twitch", "#9146ff"],
+    spotify: ["fa-brands fa-spotify", "#1db954"],
+    pinterest: ["fa-brands fa-pinterest", "#e60023"],
   };
-  const iconFor = name => BLOCK_ICONS[name.trim().toLowerCase()] || "fa-solid fa-ban";
+  const FALLBACK_COLORS = ["#8c7ad0", "#ec4899", "#0ea5e9", "#10b981", "#f59e0b", "#4f46e5"];
 
-  let blocks = read(BLOCKS_KEY, DEFAULT_BLOCKS);
-  const saveBlocks = () => write(BLOCKS_KEY, blocks);
-
-  function renderBlocks() {
-    $("block-icons-container").innerHTML = blocks.map(b => `
-      <div class="app-icon" title="${esc(b.name)}">
-        <i class="${iconFor(b.name)}"></i>
-        <button class="app-del" data-del-block="${b.id}" aria-label="Xóa ${esc(b.name)}">×</button>
-      </div>`).join("");
+  function renderBlocked() {
+    if (blocked.length === 0) {
+      $("block-icons-container").innerHTML = '<p class="app-empty">Chưa có ứng dụng nào. Bấm + để thêm.</p>';
+      return;
+    }
+    $("block-icons-container").innerHTML = blocked.map((name, i) => {
+      const brand = BRANDS[name.trim().toLowerCase()];
+      const icon = brand ? `<i class="${brand[0]}"></i>` : esc(name.trim().charAt(0).toUpperCase());
+      const color = brand ? brand[1] : FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+      return `
+      <div class="app-item">
+        <span class="app-tile" style="--c:${color}" aria-hidden="true">${icon}</span>
+        <span class="app-name" title="${esc(name)}">${esc(name)}</span>
+        <button type="button" class="app-remove" data-name="${esc(name)}" aria-label="Bỏ ${esc(name)} khỏi danh sách"><i class="fa-solid fa-xmark"></i></button>
+      </div>`;
+    }).join("");
   }
+
+  // Hộp thoại thêm ứng dụng (tạo bằng JS)
+  const blockDlg = document.createElement("dialog");
+  blockDlg.className = "dlg";
+  blockDlg.innerHTML = `
+    <form id="block-form" novalidate>
+      <h3>Thêm ứng dụng cần tránh</h3>
+      <label>Tên ứng dụng hoặc trang web
+        <input id="block-name" class="field" maxlength="30" placeholder="VD: Facebook, TikTok, YouTube">
+      </label>
+      <p class="form-error" id="block-error" role="alert"></p>
+      <div class="dlg-actions">
+        <button type="button" class="btn-soft" id="block-cancel">Hủy</button>
+        <button type="submit" class="btn-primary">Thêm</button>
+      </div>
+    </form>`;
+  document.body.append(blockDlg);
 
   $("btn-add-block").addEventListener("click", () => {
-    const name = (prompt("Nhập tên ứng dụng hoặc trang web bạn muốn tránh:") || "").trim().slice(0, 30);
-    if (!name) return;
-    if (blocks.some(b => b.name.toLowerCase() === name.toLowerCase())) return toast("Ứng dụng này đã có trong danh sách");
-    const id = blocks.length ? Math.max(...blocks.map(b => b.id)) + 1 : 1;
-    blocks.push({ id, name });
-    saveBlocks();
-    renderBlocks();
+    $("block-name").value = "";
+    $("block-error").textContent = "";
+    blockDlg.showModal();
+    $("block-name").focus();
+  });
+  $("block-cancel").addEventListener("click", () => blockDlg.close());
+  blockDlg.addEventListener("click", e => { if (e.target === blockDlg) blockDlg.close(); });
+
+  $("block-form").addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("block-name").value.trim();
+    if (!name) { $("block-error").textContent = "Vui lòng nhập tên ứng dụng."; return; }
+    if (blocked.some(b => b.toLowerCase() === name.toLowerCase())) { $("block-error").textContent = "Ứng dụng này đã có trong danh sách."; return; }
+    if (blocked.length >= 12) { $("block-error").textContent = "Danh sách tối đa 12 ứng dụng."; return; }
+    blocked.push(name);
+    write(BLOCK_KEY, blocked);
+    blockDlg.close();
+    renderBlocked();
+    toast("Đã thêm vào danh sách");
   });
 
   $("block-icons-container").addEventListener("click", e => {
-    const del = e.target.closest("[data-del-block]");
-    if (!del) return;
-    blocks = blocks.filter(b => b.id !== Number(del.dataset.delBlock));
-    saveBlocks();
-    renderBlocks();
+    const btn = e.target.closest(".app-remove");
+    if (!btn) return;
+    blocked = blocked.filter(b => b !== btn.dataset.name);
+    write(BLOCK_KEY, blocked);
+    renderBlocked();
   });
 
-  /* ========== KHỞI TẠO ========== */
-  $("banner-hello").textContent = `Good morning, ${getUser().name}!`;
-  renderCalendar();
+  // ---------- Khởi động ----------
+  renderPomoSubjects();
+  $("pomo-time").textContent = fmtClock(pomo.minutes * 60000);
+  setRunningUi(false);
   renderTasks();
   renderChart();
-  renderPomoSubjects();
-  renderBlocks();
-  showTime();
+  renderPomoTotal();
+  renderBlocked();
 })();

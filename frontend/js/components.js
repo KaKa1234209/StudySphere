@@ -1,140 +1,132 @@
-/* ===== Hàm tiện ích ===== */
-const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+// ==========================================================
+// components.js – Menu trái + thanh trên + tiện ích dùng chung
+// Tự chạy khi tải trang, không cần gọi hàm nào.
+// Cần trong HTML:  <aside id="sidebar"></aside>  và  <header id="topbar"></header>
+// ==========================================================
 
-function toast(message) {
-  const el = document.createElement("div");
-  el.className = "toast";
-  el.textContent = message;
-  document.body.append(el);
-  setTimeout(() => el.remove(), 2200);
+// ---------- Tiện ích ----------
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({
+  "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+}[c]));
+
+function fmtDate(d) {
+  if (!d) return "";
+  const date = new Date(d);
+  return isNaN(date) ? "" : date.toLocaleDateString("vi-VN");
 }
 
-// Danh sách môn học tạm cho NoteHub (sau này lấy từ Api.subjects)
-const SUBJECTS = [
-  { id: 1, name: "Toán" }, { id: 2, name: "Ngữ văn" },
-  { id: 3, name: "Tiếng Anh" }, { id: 4, name: "Lập trình" },
-];
-
-// Lấy môn học người dùng đã tạo ở trang Môn học; chưa có thì dùng danh sách mẫu
-function getSubjects() {
-  try {
-    const saved = JSON.parse(localStorage.getItem("studysphere.subjects"));
-    if (Array.isArray(saved) && saved.length) return saved;
-  } catch {}
-  return SUBJECTS;
-}
-function fillSubjects(select, withAll) {
-  select.innerHTML =
-    `<option value="">${withAll ? "Tất cả môn học" : "Không chọn"}</option>` +
-    getSubjects().map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join("");
+let toastTimer;
+function toast(msg) {
+  let el = document.getElementById("toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.className = "toast";
+    el.setAttribute("role", "status");
+    document.body.append(el);
+  }
+  el.textContent = msg;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 2600);
 }
 
-/* ===== Đăng nhập ===== */
-// Để true khi chưa có đăng nhập. Thành viên 3 làm xong auth thì ĐỔI THÀNH false.
-const DEV_NO_AUTH = true;
-
-const getUser = () => {
-  try { return JSON.parse(localStorage.getItem("user")) || { name: "Khách" }; }
-  catch { return { name: "Khách" }; }
-};
-
-function requireLogin() {
-  if (!DEV_NO_AUTH && !localStorage.getItem("token")) location.replace("login.html");
-}
-function logout() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("user");
-  location.href = "index.html";
+function currentUser() {
+  try { return JSON.parse(localStorage.getItem("user")) || {}; } catch { return {}; }
 }
 
-// Ảnh đại diện mặc định: vòng tròn tím có chữ cái đầu của tên
-function avatarFor(name) {
-  const letter = esc((name || "?").trim().charAt(0).toUpperCase());
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80"><rect width="80" height="80" rx="40" fill="#8c7ad0"/>` +
-    `<text x="40" y="53" font-size="36" font-family="sans-serif" font-weight="700" text-anchor="middle" fill="#fff">${letter}</text></svg>`;
-  return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-}
-
-/* ===== Menu: CHỈ sửa mảng này khi thêm/bớt trang ===== */
-const MENU_GROUPS = [
-  { title: "HỌC TẬP", items: [
-    { key: "overview",   icon: "fa-solid fa-chart-pie",       label: "Tổng quan", href: "dashboard.html" },
-    { key: "subjects",   icon: "fa-solid fa-book",            label: "Môn học",   href: "subjects.html" },
-    { key: "tasks",      icon: "fa-solid fa-list-check",      label: "Nhiệm vụ",  href: "tasks.html" },
-    { key: "schedule",   icon: "fa-regular fa-calendar-days", label: "Lịch học",  href: "schedule.html" },
+// ---------- Menu ----------
+const NAV = [
+  { label: "Học tập", items: [
+    { href: "dashboard.html", icon: "fa-table-cells-large", text: "Tổng quan" },
+    { href: "subjects.html", icon: "fa-book-open", text: "Môn học" },
+    { href: "tasks.html", icon: "fa-list-check", text: "Nhiệm vụ" },
+    { href: "schedule.html", icon: "fa-calendar-days", text: "Lịch học" },
   ]},
-  { title: "PHÁT TRIỂN", items: [
-    { key: "notes",      icon: "fa-regular fa-note-sticky",   label: "Ghi chú",   href: "notes.html" },
-    { key: "goals",      icon: "fa-solid fa-bullseye",        label: "Mục tiêu",  href: "goals.html" },
-    { key: "statistics", icon: "fa-solid fa-chart-line",      label: "Thống kê",  href: "statistics.html" },
+  { label: "Phát triển", items: [
+    { href: "notes.html", icon: "fa-note-sticky", text: "Ghi chú" },
+    { href: "goals.html", icon: "fa-bullseye", text: "Mục tiêu" },
+    { href: "statistics.html", icon: "fa-chart-simple", text: "Thống kê" },
   ]},
-  { title: "TÀI KHOẢN", items: [
-    { key: "profile",    icon: "fa-regular fa-user",          label: "Hồ sơ cá nhân", href: "profile.html" },
+  { label: "Tài khoản", items: [
+    { href: "profile.html", icon: "fa-user", text: "Hồ sơ cá nhân" },
   ]},
 ];
 
-/* ===== Sidebar + Header dùng chung ===== */
-function renderSidebar(active) {
-  const el = document.getElementById("sidebar");
-  if (!el) return console.error('Thiếu khung <aside class="sidebar" id="sidebar"></aside> trong trang này');
-  el.innerHTML = `
-    <div class="logo-section">
-      <img src="../images/favicon.png" alt="StudySphere" class="logo-img">
-      <span class="logo-text">StudySphere</span>
-    </div>
-    <nav class="sidebar-nav">
-      ${MENU_GROUPS.map(g => `
-        <div class="nav-group">
-          <span class="group-title">${g.title}</span>
-          ${g.items.map(i => `<a href="${i.href}" class="nav-item ${i.key === active ? "active" : ""}">
-            <i class="${i.icon}"></i><span>${i.label}</span></a>`).join("")}
-        </div>`).join("")}
-      <div class="nav-group">
-        <a href="#" class="nav-item" id="logoutLink"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
-      </div>
-    </nav>`;
-  document.getElementById("logoutLink").addEventListener("click", e => { e.preventDefault(); logout(); });
-}
+function renderSidebar() {
+  const box = document.getElementById("sidebar");
+  if (!box) return;
 
-function renderTopbar(title) {
-  const el = document.getElementById("topbar");
-  if (!el) return console.error('Thiếu khung <header class="top-header" id="topbar"></header> trong trang này');
-  const user = getUser();
-  el.innerHTML = `
-    <div class="header-title"><h2>${esc(title)}</h2></div>
-    <div class="header-actions">
-      <div class="focus-toggle-wrapper">
-        <span>Focus Mode</span>
-        <label class="switch"><input type="checkbox" id="focusToggle"><span class="slider round"></span></label>
-      </div>
-      <button class="icon-btn bell-btn" aria-label="Thông báo"><i class="fa-regular fa-bell"></i></button>
-      <a class="user-profile" href="profile.html">
-        <img src="${user.avatar || avatarFor(user.name)}" alt="Ảnh đại diện">
-        <div class="user-info"><span class="name">${esc(user.name)}</span><span class="role">Sinh viên</span></div>
+  const page = location.pathname.split("/").pop() || "dashboard.html";
+
+  box.setAttribute("aria-label", "Menu chính");
+  box.innerHTML = `
+    <div class="sb-head">
+      <a class="sb-brand" href="dashboard.html">
+        <span class="sb-logo"><img src="images/logo-mark.svg" alt="" onerror="this.replaceWith(Object.assign(document.createElement('i'),{className:'fa-solid fa-graduation-cap'}))"></span>
+        <span>Study<b>Sphere</b></span>
       </a>
+      <button type="button" class="sb-close" id="btnCloseMenu" aria-label="Đóng menu"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <nav class="sb-nav">
+      ${NAV.map(g => `
+        <p class="sb-label">${g.label}</p>
+        ${g.items.map(i => `
+          <a class="sb-link ${i.href === page ? "active" : ""}" href="${i.href}" ${i.href === page ? 'aria-current="page"' : ""}>
+            <i class="fa-solid ${i.icon}"></i><span>${i.text}</span>
+          </a>`).join("")}
+      `).join("")}
+    </nav>
+    <div class="sb-bottom">
+      <a class="sb-link" href="#" id="btnLogout"><i class="fa-solid fa-right-from-bracket"></i><span>Đăng xuất</span></a>
     </div>`;
-}
 
-/* ===== Focus Mode ===== */
-const FOCUS_KEY = "studysphere.focus";
+  const overlay = document.createElement("div");
+  overlay.className = "sb-overlay";
+  document.body.append(overlay);
 
-function setupFocusMode() {
-  const toggle = document.getElementById("focusToggle");
-  if (!toggle) return;
-  const on = localStorage.getItem(FOCUS_KEY) === "1";
-  document.body.classList.toggle("focus-mode", on);
-  toggle.checked = on;
-  toggle.addEventListener("change", () => {
-    document.body.classList.toggle("focus-mode", toggle.checked);
-    localStorage.setItem(FOCUS_KEY, toggle.checked ? "1" : "0");
-    toast(toggle.checked ? "Đã bật Focus Mode" : "Đã tắt Focus Mode");
+  const setOpen = open => document.body.classList.toggle("nav-open", open);
+  overlay.addEventListener("click", () => setOpen(false));
+  document.getElementById("btnCloseMenu").addEventListener("click", () => setOpen(false));
+  document.getElementById("btnLogout").addEventListener("click", e => {
+    e.preventDefault();
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    location.href = "login.html";
   });
+  document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
+
+  return setOpen;
 }
 
-// Mỗi trang chỉ cần gọi 1 dòng này. Tự chờ trang tải xong nếu gọi quá sớm.
-function renderLayout(active, title) {
-  requireLogin();
-  const run = () => { renderSidebar(active); renderTopbar(title); setupFocusMode(); };
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", run);
-  else run();
+function renderTopbar(setOpen) {
+  const box = document.getElementById("topbar");
+  if (!box) return;
+
+  const page = location.pathname.split("/").pop() || "dashboard.html";
+  const current = NAV.flatMap(g => g.items).find(i => i.href === page);
+  const title = current ? current.text : "StudyFlow";
+
+  const user = currentUser();
+  const name = user.name || user.full_name || "Sinh viên";
+  const dateText = new Date().toLocaleDateString("vi-VN", {
+    weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"
+  });
+
+  box.innerHTML = `
+    <div class="th-left">
+      <button type="button" class="th-menu" id="btnMenu" aria-label="Mở menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="th-crumb">StudyFlow <span>/</span> <strong>${esc(title)}</strong></div>
+    </div>
+    <div class="th-right">
+      <span class="th-date">${esc(dateText)}</span>
+      <div class="th-user">
+        <span class="th-name">${esc(name)}</span>
+        <span class="th-avatar" aria-hidden="true">${esc(name.trim().charAt(0).toUpperCase() || "S")}</span>
+      </div>
+    </div>`;
+
+  document.getElementById("btnMenu").addEventListener("click", () => setOpen && setOpen(true));
 }
+
+renderTopbar(renderSidebar());

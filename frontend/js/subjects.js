@@ -1,244 +1,240 @@
-/**
- * - Mảng dữ liệu giả dựa trên SQL_StudySphere.sql
- * - Render vào table tbody#subjectBody hoặc div#subjectList
- * - Thêm / Sửa / Xóa bằng prompt/confirm và cập nhật UI ngay
- * - Pomodoro timer đơn giản (btn-pomo-start, btn-plus, btn-minus, pomo-time)
- */
-(function () {
-  // 1) Dữ liệu giả (dựa trên SQL_StudySphere.sql)
-  let subjects = [
-    { id: 1, code: 'MATH101', name: 'Toán học' },
-    { id: 2, code: 'PROG201', name: 'Ngôn ngữ lập trình' },
-    { id: 3, code: 'DB301',   name: 'Cơ sở dữ liệu' },
-    { id: 4, code: 'NET201',  name: 'Mạng máy tính' },
-    { id: 5, code: 'WEB301',  name: 'Thiết kế web' },
-    { id: 6, code: 'ENG201',  name: 'Tiếng Anh' }
-  ];
+// ==========================================================
+// subjects.js – Trang Môn học (thêm / sửa / xóa / tìm kiếm)
+// Dữ liệu: tạm lưu localStorage (USE_MOCK = true).
+// Khi backend xong: đặt USE_MOCK = false để gọi /api/subjects.
+// Môn học: { id, code, name, teacher, created_at }
+// ==========================================================
+(() => {
+  const USE_MOCK = true;
+  const API = "/api/subjects";
+  const KEY = "sf_subjects";
+  const COLORS = ["#8c7ad0", "#ec4899", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#4f46e5", "#64748b"];
 
-  // Utility: lấy element theo id (nếu có)
+  // Dữ liệu mẫu cho lần mở đầu tiên
+  const SEED = [
+    ["MATH101", "Toán học", ""],
+    ["PROG201", "Ngôn ngữ lập trình", ""],
+    ["DB301", "Cơ sở dữ liệu", ""],
+    ["NET201", "Mạng máy tính", ""],
+    ["WEB301", "Thiết kế web", ""],
+    ["ENG201", "Tiếng Anh", ""],
+  ].map(([code, name, teacher], i) => ({ id: i + 1, code, name, teacher, created_at: new Date().toISOString() }));
+
   const $ = id => document.getElementById(id);
 
-  // 2) Render danh sách (hỗ trợ table tbody#subjectBody hoặc list div#subjectList)
-  function renderSubjects(filter = '') {
-    const q = (filter || '').trim().toLowerCase();
+  // ---------- Lấy / lưu dữ liệu ----------
+  async function http(url, options = {}) {
+    const token = localStorage.getItem("token");
+    const res = await fetch(url, {
+      ...options,
+      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+    });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok || json.success === false) throw new Error(json.message || "Có lỗi xảy ra, vui lòng thử lại");
+    return json.data !== undefined ? json.data : json;
+  }
 
-    const filtered = subjects.filter(s =>
-      s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q)
-    );
+  const readLocal = () => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw === null) { writeLocal(SEED); return [...SEED]; }
+      const list = JSON.parse(raw);
+      return Array.isArray(list) ? list : [];
+    } catch { return []; }
+  };
+  const writeLocal = list => localStorage.setItem(KEY, JSON.stringify(list));
 
-    // Nếu có bảng tbody#subjectBody -> render dạng bảng
-    const tbody = $('subjectBody');
-    if (tbody) {
-      tbody.innerHTML = filtered.map((s, i) => `
-        <tr data-id="${s.id}">
-          <td data-label="#">${i + 1}</td>
-          <td data-label="Mã">${escapeHtml(s.code)}</td>
-          <td data-label="Môn học">${escapeHtml(s.name)}</td>
-          <td class="text-end">
-            <button class="btn-edit" data-id="${s.id}">Sửa</button>
-            <button class="btn-delete" data-id="${s.id}">Xóa</button>
-          </td>
-        </tr>
-      `).join('');
-    }
+  const Data = USE_MOCK ? {
+    list: async () => readLocal(),
+    create: async body => {
+      const list = readLocal();
+      const item = { ...body, id: Math.max(0, ...list.map(s => s.id)) + 1, created_at: new Date().toISOString() };
+      writeLocal([...list, item]);
+      return item;
+    },
+    update: async (id, body) => writeLocal(readLocal().map(s => (s.id === Number(id) ? { ...s, ...body } : s))),
+    remove: async id => writeLocal(readLocal().filter(s => s.id !== Number(id))),
+  } : {
+    list: () => http(API),
+    create: body => http(API, { method: "POST", body: JSON.stringify(body) }),
+    update: (id, body) => http(`${API}/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    remove: id => http(`${API}/${id}`, { method: "DELETE" }),
+  };
 
-    // Nếu có div#subjectList -> render dạng thẻ / danh sách
-    const list = $('subjectList');
-    if (list) {
-      list.innerHTML = filtered.map(s => `
-        <div class="subject-card" data-id="${s.id}">
-          <div><strong>${escapeHtml(s.code)}</strong> — ${escapeHtml(s.name)}</div>
-          <div>
-            <button class="btn-edit" data-id="${s.id}">Sửa</button>
-            <button class="btn-delete" data-id="${s.id}">Xóa</button>
+  // ---------- Trạng thái ----------
+  let subjects = [];
+  let editingId = null;
+  let deleteId = null;
+
+  const dlg = $("dlg");
+  const form = $("form");
+
+  // Hộp thoại xác nhận xóa (tạo bằng JS để không phải sửa HTML)
+  const confirmDlg = document.createElement("dialog");
+  confirmDlg.className = "dlg";
+  confirmDlg.innerHTML = `
+    <div class="dlg-body">
+      <h3>Xóa môn học?</h3>
+      <p>Bạn sắp xóa môn <strong id="confirmName"></strong>. Hành động này không thể hoàn tác.</p>
+      <div class="dlg-actions">
+        <button type="button" class="btn-soft" id="confirmCancel">Hủy</button>
+        <button type="button" class="btn-danger" id="confirmOk"><i class="fa-solid fa-trash"></i> Xóa</button>
+      </div>
+    </div>`;
+  document.body.append(confirmDlg);
+
+  // ---------- Hiển thị ----------
+  function card(s) {
+    const color = COLORS[s.id % COLORS.length];
+    return `
+      <article class="sj-card" style="--c:${color}">
+        <div class="sj-card-top">
+          <span class="sj-avatar">${esc(s.name.trim().charAt(0).toUpperCase())}</span>
+          <div class="sj-info">
+            <div class="sj-name">${esc(s.name)}</div>
+            ${s.code ? `<span class="sj-code">${esc(s.code)}</span>` : ""}
           </div>
         </div>
-      `).join('');
-    }
-
-    // cập nhật đếm (nếu có phần tử #countText hoặc #heroCount)
-    if ($('countText')) $('countText').textContent = `${filtered.length} môn học`;
-    if ($('heroCount')) $('heroCount').textContent = subjects.length;
+        <div class="sj-line ${s.teacher ? "" : "muted"}">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span>${s.teacher ? esc(s.teacher) : "Chưa có giáo viên"}</span>
+        </div>
+        <div class="sj-card-foot">
+          <span class="sj-date"><i class="fa-regular fa-calendar"></i> ${fmtDate(s.created_at)}</span>
+          <div class="sj-actions">
+            <button type="button" class="sj-pill edit" data-action="edit" data-id="${s.id}" aria-label="Sửa môn ${esc(s.name)}"><i class="fa-solid fa-pen"></i> Sửa</button>
+            <button type="button" class="sj-pill del" data-action="delete" data-id="${s.id}" aria-label="Xóa môn ${esc(s.name)}"><i class="fa-solid fa-trash"></i> Xóa</button>
+          </div>
+        </div>
+      </article>`;
   }
 
-  // Helper escape
-  function escapeHtml(s) {
-    return String(s || '').replace(/[&<>"']/g, function (c) {
-      return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' })[c];
-    });
-  }
+  function render() {
+    const q = $("searchInput").value.trim().toLowerCase();
+    const list = subjects.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      (s.code || "").toLowerCase().includes(q) ||
+      (s.teacher || "").toLowerCase().includes(q)
+    );
 
-  // 3) Thêm môn học (dùng prompt đơn giản)
-  function addSubject() {
-    const code = prompt('Nhập mã môn (ví dụ MATH101):', '');
-    if (!code) return;
-    const name = prompt('Nhập tên môn:', '');
-    if (!name) return;
+    $("heroCount").textContent = subjects.length;
+    $("countText").textContent = `${list.length} môn học`;
 
-    // tạo id mới (max id + 1)
-    const id = subjects.length ? Math.max(...subjects.map(s => s.id)) + 1 : 1;
-    subjects.push({ id, code: code.trim(), name: name.trim() });
-    renderSubjects($('searchInput') ? $('searchInput').value : '');
-    showTinyToast('Đã thêm môn học');
-  }
-
-  // Sửa môn học (prompt)
-  function editSubject(id) {
-    const s = subjects.find(x => x.id === id);
-    if (!s) return alert('Môn học không tìm thấy');
-    const newCode = prompt('Sửa mã môn:', s.code);
-    if (!newCode) return;
-    const newName = prompt('Sửa tên môn:', s.name);
-    if (!newName) return;
-
-    s.code = newCode.trim();
-    s.name = newName.trim();
-    renderSubjects($('searchInput') ? $('searchInput').value : '');
-    showTinyToast('Đã cập nhật môn học');
-  }
-
-  // Xóa môn học
-  function deleteSubject(id) {
-    const s = subjects.find(x => x.id === id);
-    if (!s) return alert('Môn học không tìm thấy');
-    if (!confirm(`Bạn có chắc muốn xóa "${s.name}" (${s.code})?`)) return;
-    subjects = subjects.filter(x => x.id !== id);
-    renderSubjects($('searchInput') ? $('searchInput').value : '');
-    showTinyToast('Đã xóa môn học');
-  }
-
-  // Event delegation cho buttons sửa / xóa trong container
-  function attachListHandlers() {
-    const tbody = $('subjectBody');
-    const list = $('subjectList');
-
-    const handler = function (e) {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const id = Number(btn.dataset.id);
-      if (btn.classList.contains('btn-edit')) {
-        editSubject(id);
-      } else if (btn.classList.contains('btn-delete')) {
-        deleteSubject(id);
-      }
-    };
-
-    if (tbody) tbody.addEventListener('click', handler);
-    if (list) list.addEventListener('click', handler);
-  }
-
-  // Tắt/bật search (nếu có #searchInput)
-  function attachSearchHandler() {
-    const si = $('searchInput');
-    if (!si) return;
-    si.addEventListener('input', () => renderSubjects(si.value));
-  }
-
-  // Nút thêm (nếu có #btnAdd or #btnAddSubject)
-  function attachAddButtons() {
-    const b1 = $('btnAdd');
-    const b2 = $('btnAddSubject');
-    const b3 = $('btnAddEmpty'); // trang hiện có thể có
-    [b1, b2, b3].forEach(b => {
-      if (b) b.addEventListener('click', addSubject);
-    });
-  }
-
-  // tiny toast (nếu có element #toast) else fallback console.log
-  let toastTimer = null;
-  function showTinyToast(msg) {
-    const el = $('toast');
-    if (!el) {
-      // fallback: console + alert suppressed
-      console.log('[toast]', msg);
+    if (list.length === 0) {
+      const noData = subjects.length === 0;
+      $("subjectList").innerHTML = `
+        <div class="sj-empty">
+          <div class="sj-empty-mark" aria-hidden="true"></div>
+          <h3>${noData ? "Chưa có môn học nào" : "Không tìm thấy kết quả"}</h3>
+          <p>${noData ? "Hãy thêm môn học đầu tiên của bạn để bắt đầu sắp xếp việc học." : "Thử tìm bằng từ khóa khác nhé."}</p>
+          ${noData ? '<button type="button" class="btn-primary" data-add><i class="fa-solid fa-plus"></i> Thêm môn học</button>' : ""}
+        </div>`;
       return;
     }
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+
+    // Ô "Thêm môn học" nằm cuối lưới (ẩn khi đang tìm kiếm)
+    const addTile = q ? "" : `<button type="button" class="sj-add-tile" data-add><i class="fa-solid fa-plus"></i>Thêm môn học</button>`;
+    $("subjectList").innerHTML = `<div class="sj-grid">${list.map(card).join("")}${addTile}</div>`;
   }
 
-  // ---------- Pomodoro Timer đơn giản ----------
-  let totalSeconds = 25 * 60;
-  let timerInterval = null;
-  let isRunning = false;
-
-  function formatTime(sec) {
-    const m = Math.floor(sec / 60);
-    const s = sec % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-  }
-
-  function updatePomoDisplay() {
-    const disp = $('pomo-time');
-    if (disp) disp.textContent = formatTime(totalSeconds);
-  }
-
-  function startPomo() {
-    const btn = $('btn-pomo-start');
-    if (isRunning) {
-      // pause
-      clearInterval(timerInterval);
-      timerInterval = null;
-      isRunning = false;
-      if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
-      return;
+  async function load() {
+    try {
+      subjects = await Data.list();
+    } catch (err) {
+      subjects = [];
+      toast(err.message);
     }
-    // start
-    isRunning = true;
-    if (btn) { btn.textContent = 'Pause'; btn.classList.add('running'); }
-    if (totalSeconds <= 0) totalSeconds = 25 * 60;
-    timerInterval = setInterval(() => {
-      if (totalSeconds > 0) {
-        totalSeconds--;
-        updatePomoDisplay();
-      } else {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        isRunning = false;
-        if (btn) { btn.textContent = 'Start'; btn.classList.remove('running'); }
-        alert('Hoàn thành phiên Pomodoro! Hãy nghỉ ngơi một chút.');
-      }
-    }, 1000);
+    render();
   }
 
-  function adjustPomo(deltaSeconds) {
-    if (isRunning) return; // không chỉnh khi đang chạy
-    totalSeconds = Math.max(0, totalSeconds + deltaSeconds);
-    updatePomoDisplay();
+  // ---------- Thêm / sửa ----------
+  function openForm(subject) {
+    editingId = subject ? subject.id : null;
+    $("dlg-title").textContent = subject ? "Sửa môn học" : "Thêm môn học";
+    $("f-code").value = subject ? subject.code || "" : "";
+    $("f-name").value = subject ? subject.name : "";
+    $("f-teacher").value = subject ? subject.teacher || "" : "";
+    $("f-error").textContent = "";
+    ["f-code", "f-name", "f-teacher"].forEach(id => $(id).classList.remove("invalid"));
+    dlg.showModal();
+    $("f-name").focus();
   }
 
-  function attachPomoHandlers() {
-    const startBtn = $('btn-pomo-start');
-    const plusBtn = $('btn-plus');
-    const minusBtn = $('btn-minus');
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+    const code = $("f-code").value.trim().toUpperCase();
+    const name = $("f-name").value.trim();
+    const teacher = $("f-teacher").value.trim();
 
-    if (startBtn) startBtn.addEventListener('click', startPomo);
-    if (plusBtn) plusBtn.addEventListener('click', () => adjustPomo(5 * 60));
-    if (minusBtn) minusBtn.addEventListener('click', () => adjustPomo(-5 * 60));
+    $("f-name").classList.toggle("invalid", !name);
+    $("f-code").classList.remove("invalid");
+    if (!name) {
+      $("f-error").textContent = "Vui lòng nhập tên môn học.";
+      return $("f-name").focus();
+    }
+    if (code && subjects.some(s => s.id !== editingId && (s.code || "").toUpperCase() === code)) {
+      $("f-code").classList.add("invalid");
+      $("f-error").textContent = "Mã môn này đã tồn tại.";
+      return $("f-code").focus();
+    }
 
-    // Init display
-    updatePomoDisplay();
-  }
+    const btn = form.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      const body = { code, name, teacher };
+      const wasEdit = editingId !== null;
+      if (wasEdit) await Data.update(editingId, body);
+      else await Data.create(body);
+      dlg.close();
+      $("searchInput").value = "";
+      await load();
+      toast(wasEdit ? "Đã cập nhật môn học" : "Đã thêm môn học");
+    } catch (err) {
+      $("f-error").textContent = err.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
 
-  // ---------- Init ----------
-  function init() {
-    renderSubjects();
-    attachListHandlers();
-    attachSearchHandler();
-    attachAddButtons();
-    attachPomoHandlers();
+  // ---------- Xóa ----------
+  $("confirmCancel").addEventListener("click", () => confirmDlg.close());
+  $("confirmOk").addEventListener("click", async () => {
+    if (deleteId === null) return;
+    try {
+      await Data.remove(deleteId);
+      confirmDlg.close();
+      await load();
+      toast("Đã xóa môn học");
+    } catch (err) {
+      toast(err.message);
+    }
+    deleteId = null;
+  });
 
-    // nếu muốn, bạn có thể expose subjects ra window để debug:
-    // window._subjects = subjects;
-  }
+  // ---------- Sự kiện ----------
+  $("btnAddHero").addEventListener("click", () => openForm(null));
+  $("btn-cancel").addEventListener("click", () => dlg.close());
+  $("searchInput").addEventListener("input", render);
 
-  // Khi DOM sẵn sàng
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  // Bấm ra ngoài hộp thoại để đóng
+  [dlg, confirmDlg].forEach(d => d.addEventListener("click", e => { if (e.target === d) d.close(); }));
 
+  $("subjectList").addEventListener("click", e => {
+    if (e.target.closest("[data-add]")) return openForm(null);
+
+    const btn = e.target.closest("button[data-action]");
+    if (!btn) return;
+    const subject = subjects.find(s => s.id === Number(btn.dataset.id));
+    if (!subject) return;
+
+    if (btn.dataset.action === "edit") {
+      openForm(subject);
+    } else {
+      deleteId = subject.id;
+      $("confirmName").textContent = subject.name;
+      confirmDlg.showModal();
+    }
+  });
+
+  load();
 })();
