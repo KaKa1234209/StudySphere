@@ -16,7 +16,7 @@ function highlight(text) {
 function noteCard(n) {
   const subject = getSubjects().find(s => s.id == n.subject_id);
   return `
-  <a class="card" href="note-editor.html?id=${n.id}">
+  <a class="card" href="note_editor.html?id=${n.id}">
     <h3>
       <span>${highlight(n.title || "Chưa đặt tiêu đề")}</span>
       <button class="pin ${n.pinned ? "on" : ""}" data-pin="${n.id}" aria-label="Ghim ghi chú">${n.pinned ? "★" : "☆"}</button>

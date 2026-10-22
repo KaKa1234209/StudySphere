@@ -1,0 +1,367 @@
+/* ==========================================================
+   SkillTrack – Giao diện Mục tiêu, Chi tiết Mục tiêu & Thống kê
+   (Tông màu tím StudySphere đồng bộ với studyflow.css)
+   ========================================================== */
+
+/* ---------- Thanh tiến độ dùng chung ---------- */
+.st-progress-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.st-progress-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: .84rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+.st-progress-head span:last-child {
+  color: var(--brand-dark);
+}
+.st-progress-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 99px;
+  background: var(--brand-soft);
+  overflow: hidden;
+}
+.st-progress-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--brand-light) 0%, var(--brand) 60%, var(--brand-dark) 100%);
+  transition: width .35s ease;
+}
+.st-progress-fill.done {
+  background: linear-gradient(90deg, #34d399 0%, #10b981 100%);
+}
+
+/* ---------- Huy hiệu trạng thái mục tiêu ---------- */
+.st-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 99px;
+  font-size: .76rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.st-badge.active {
+  background: #e3f0fd;
+  color: #2b6cb0;
+}
+.st-badge.completed {
+  background: #e4f6ee;
+  color: #2f855a;
+}
+.st-badge.paused {
+  background: #fff3dd;
+  color: #b7791f;
+}
+
+/* ---------- Bảng / Danh sách mục tiêu (goals.html) ---------- */
+.gl-table-wrap {
+  overflow-x: auto;
+}
+.gl-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.gl-table th {
+  padding: 14px 24px;
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  background: var(--soft);
+  border-bottom: 1px solid var(--line);
+}
+.gl-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid var(--line);
+  vertical-align: middle;
+}
+.gl-table tr:last-child td {
+  border-bottom: 0;
+}
+.gl-table tbody tr {
+  transition: background .15s ease;
+}
+.gl-table tbody tr:hover {
+  background: #faf8fe;
+}
+.gl-title-link {
+  display: inline-block;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--ink);
+  text-decoration: none;
+  transition: color .15s ease;
+}
+.gl-title-link:hover {
+  color: var(--brand-dark);
+  text-decoration: underline;
+}
+.gl-desc {
+  margin-top: 4px;
+  font-size: .84rem;
+  color: var(--muted);
+  max-width: 420px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.gl-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: .84rem;
+  color: var(--ink);
+}
+.gl-dates small {
+  font-size: .76rem;
+  color: var(--muted);
+}
+.gl-prog-cell {
+  min-width: 190px;
+}
+.sj-pill.view {
+  background: #eef2ff;
+  color: #4338ca;
+  text-decoration: none;
+}
+.sj-pill.view:hover {
+  background: #4338ca;
+  color: #fff;
+}
+
+/* ---------- Trang chi tiết mục tiêu (goal_detail.html / goal-detail.html) ---------- */
+.gd-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .9rem;
+  font-weight: 700;
+  color: var(--brand-dark);
+  text-decoration: none;
+}
+.gd-back:hover {
+  text-decoration: underline;
+}
+.gd-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+.gd-card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 24px 26px;
+}
+.gd-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+.gd-head h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.gd-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 14px;
+  margin: 18px 0;
+  padding: 16px;
+  border-radius: 16px;
+  background: var(--soft);
+}
+.gd-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gd-meta-item span {
+  font-size: .76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+}
+.gd-meta-item strong {
+  font-size: .96rem;
+  color: var(--ink);
+}
+
+/* Danh sách bước thực hiện (GoalTasks) */
+.step-add-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.step-add-bar input {
+  flex: 1;
+}
+.step-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border: 1.5px solid var(--line);
+  border-radius: 16px;
+  background: #fff;
+  transition: border-color .15s ease, background .15s ease;
+}
+.step-item:hover {
+  border-color: var(--brand-light);
+}
+.step-item.done {
+  background: #f9fafb;
+  border-color: #d1fae5;
+}
+.step-check {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 2px solid var(--brand);
+  background: #fff;
+  color: transparent;
+  cursor: pointer;
+  flex: 0 0 auto;
+  padding: 0;
+  transition: all .15s ease;
+}
+.step-item.done .step-check {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+.step-title {
+  flex: 1;
+  font-size: .95rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+.step-item.done .step-title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.step-actions {
+  display: flex;
+  gap: 6px;
+}
+
+/* ---------- Trang Thống kê (statistics.html) ---------- */
+.st-grid-2 {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+  gap: 20px;
+}
+.st-chart-box {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 14px;
+  height: 210px;
+  padding: 24px 12px 8px;
+  border-bottom: 1px solid var(--line);
+}
+.st-bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+}
+.st-bar-val {
+  font-size: .74rem;
+  font-weight: 700;
+  color: var(--brand-dark);
+  min-height: 1.1em;
+}
+.st-bar-rail {
+  flex: 1;
+  width: 100%;
+  max-width: 44px;
+  border-radius: 12px;
+  background: var(--soft);
+  display: flex;
+  align-items: flex-end;
+  padding: 3px;
+}
+.st-bar-fill {
+  width: 100%;
+  border-radius: 9px;
+  background: linear-gradient(180deg, var(--brand-light), var(--brand-dark));
+  transition: height .35s ease;
+}
+.st-bar-col.today .st-bar-fill {
+  background: linear-gradient(180deg, #f472b6, #db2777);
+}
+.st-bar-lbl {
+  font-size: .8rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+.st-bar-col.today .st-bar-lbl {
+  color: #db2777;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--line);
+}
+.session-item:last-child {
+  border-bottom: 0;
+}
+.session-info strong {
+  display: block;
+  font-size: .93rem;
+  color: var(--ink);
+}
+.session-info small {
+  color: var(--muted);
+  font-size: .8rem;
+}
+.session-mins {
+  padding: 5px 12px;
+  border-radius: 99px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: .82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+@media (max-width: 991.98px) {
+  .gd-layout,
+  .st-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}

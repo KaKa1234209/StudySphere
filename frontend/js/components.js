@@ -35,6 +35,44 @@ function currentUser() {
   try { return JSON.parse(localStorage.getItem("user")) || {}; } catch { return {}; }
 }
 
+// ---------- Dữ liệu môn học dùng chung (cho NoteHub & StudyFlow) ----------
+const DEFAULT_SUBJECT_SEED = [
+  { id: 1, code: "MATH101", name: "Toán học", teacher: "" },
+  { id: 2, code: "PROG201", name: "Ngôn ngữ lập trình", teacher: "" },
+  { id: 3, code: "DB301", name: "Cơ sở dữ liệu", teacher: "" },
+  { id: 4, code: "NET201", name: "Mạng máy tính", teacher: "" },
+  { id: 5, code: "WEB301", name: "Thiết kế web", teacher: "" },
+  { id: 6, code: "ENG201", name: "Tiếng Anh", teacher: "" },
+];
+
+function getSubjects() {
+  try {
+    const raw = localStorage.getItem("sf_subjects");
+    if (!raw) return DEFAULT_SUBJECT_SEED;
+    const list = JSON.parse(raw);
+    return Array.isArray(list) && list.length ? list : DEFAULT_SUBJECT_SEED;
+  } catch {
+    return DEFAULT_SUBJECT_SEED;
+  }
+}
+
+function fillSubjects(selectEl, isFilter = false) {
+  if (!selectEl) return;
+  const firstOpt = isFilter
+    ? '<option value="">Tất cả môn học</option>'
+    : '<option value="">-- Chọn môn học --</option>';
+  selectEl.innerHTML = firstOpt + getSubjects()
+    .map(s => `<option value="${s.id}">${esc(s.name)}</option>`)
+    .join("");
+}
+
+function renderLayout(activeKey, crumbText) {
+  if (crumbText) {
+    const crumbStrong = document.querySelector("#topbar .th-crumb strong");
+    if (crumbStrong) crumbStrong.textContent = crumbText;
+  }
+}
+
 // ---------- Menu ----------
 const NAV = [
   { label: "Học tập", items: [

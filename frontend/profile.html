@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Hồ sơ cá nhân</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+    <link rel="stylesheet" href="css/skilltrack.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">TÀI KHOẢN &amp; BẢO MẬT</span>
+                        <h1 id="pfHeroName">Hồ sơ cá nhân</h1>
+                        <p id="pfHeroEmail">Quản lý thông tin tài khoản và mật khẩu đăng nhập trên hệ thống StudySphere.</p>
+                    </div>
+                    <div class="sj-count">
+                        <b id="pfRole">USER</b>
+                        <span>vai trò</span>
+                    </div>
+                </section>
+
+                <div class="st-grid-2">
+                    <section class="gd-card">
+                        <div class="gd-head">
+                            <h2>Thông tin tài khoản</h2>
+                        </div>
+                        <form id="profileForm" novalidate>
+                            <label style="display:block;margin-bottom:14px;font-size:.86rem;font-weight:600">
+                                Họ và tên
+                                <input type="text" id="pf-name" class="field" maxlength="100" required>
+                            </label>
+                            <label style="display:block;margin-bottom:14px;font-size:.86rem;font-weight:600">
+                                Địa chỉ Email
+                                <input type="email" id="pf-email" class="field" maxlength="150" required>
+                            </label>
+                            <p class="form-error" id="pf-error"></p>
+                            <button type="submit" class="btn-primary">
+                                <i class="fa-solid fa-floppy-disk"></i> Lưu thay đổi
+                            </button>
+                        </form>
+                    </section>
+
+                    <section class="gd-card">
+                        <div class="gd-head">
+                            <h2>Đổi mật khẩu</h2>
+                        </div>
+                        <form id="passwordForm" novalidate>
+                            <label style="display:block;margin-bottom:14px;font-size:.86rem;font-weight:600">
+                                Mật khẩu hiện tại
+                                <input type="password" id="pw-current" class="field" placeholder="Mặc định demo: 123456">
+                            </label>
+                            <label style="display:block;margin-bottom:14px;font-size:.86rem;font-weight:600">
+                                Mật khẩu mới (tối thiểu 6 ký tự)
+                                <input type="password" id="pw-new" class="field" placeholder="••••••••">
+                            </label>
+                            <p class="form-error" id="pw-error"></p>
+                            <button type="submit" class="btn-primary">
+                                <i class="fa-solid fa-key"></i> Cập nhật mật khẩu
+                            </button>
+                        </form>
+                    </section>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

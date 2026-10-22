@@ -1,9 +1,9 @@
 {
   "name": "studysphere-backend",
   "version": "1.0.0",
-  "scripts": { "start": "node server.js" },
+  "scripts": { "start": "node serve.js" },
   "dependencies": {
-    "better-sqlite3": "^11.3.0",
+    "better-sqlite3": "^12.4.1",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.2"

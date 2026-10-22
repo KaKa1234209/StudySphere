@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Thống kê &amp; Tiến độ</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+    <link rel="stylesheet" href="css/skilltrack.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <!-- Banner đầu trang -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">SKILLTRACK · PHÂN TÍCH HỌC TẬP</span>
+                        <h1>Biểu đồ tiến độ &amp; Chuỗi ngày học</h1>
+                        <p>Ghi nhận phiên học, theo dõi thời lượng tập trung mỗi tuần và duy trì chuỗi ngày học liên tục (Streak).</p>
+                        <button class="sj-btn-white" id="btnLogSession"><i class="fa-solid fa-plus"></i> Ghi nhận phiên học</button>
+                    </div>
+                    <div class="sj-count">
+                        <b id="heroStreak">0</b>
+                        <span>ngày liên tiếp 🔥</span>
+                    </div>
+                </section>
+
+                <!-- 4 Thẻ chỉ số tổng quan -->
+                <section class="tk-stats" id="statCards"></section>
+
+                <!-- Hàng 1: Biểu đồ thời gian học 7 ngày + Tiến độ từng mục tiêu -->
+                <div class="st-grid-2">
+                    <section class="gd-card">
+                        <div class="gd-head">
+                            <div>
+                                <h2>Thời lượng học 7 ngày gần nhất</h2>
+                                <p style="margin:4px 0 0;font-size:.84rem;color:var(--muted)">Tổng số phút học tập theo từng ngày trong tuần</p>
+                            </div>
+                        </div>
+                        <div class="st-chart-box" id="weeklyChart"></div>
+                    </section>
+
+                    <section class="gd-card">
+                        <div class="gd-head">
+                            <div>
+                                <h2>Tiến độ các mục tiêu</h2>
+                                <p style="margin:4px 0 0;font-size:.84rem;color:var(--muted)">Phần trăm hoàn thành dựa trên số bước nhỏ</p>
+                            </div>
+                            <a href="goals.html" class="sj-pill view"><i class="fa-solid fa-arrow-right"></i> Quản lý</a>
+                        </div>
+                        <div id="goalProgressBars" style="display:flex;flex-direction:column;gap:16px"></div>
+                    </section>
+                </div>
+
+                <!-- Hàng 2: Nhật ký phiên học gần đây -->
+                <section class="gd-card">
+                    <div class="gd-head">
+                        <div>
+                            <h2>Nhật ký phiên học gần đây</h2>
+                            <p style="margin:4px 0 0;font-size:.84rem;color:var(--muted)">Danh sách các phiên học và thời lượng đã ghi nhận</p>
+                        </div>
+                    </div>
+                    <div id="sessionHistory"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hộp thoại ghi nhận phiên học -->
+    <dialog id="sessionDlg" class="dlg">
+        <form id="sessionForm" novalidate>
+            <h3>Ghi nhận phiên học mới</h3>
+            <label>Mục tiêu liên kết <span class="opt">(không bắt buộc)</span>
+                <select id="f-goal" class="field"></select>
+            </label>
+            <div class="dlg-row">
+                <label>Thời lượng (phút)
+                    <input type="number" id="f-minutes" class="field" min="5" max="600" value="45" required>
+                </label>
+                <label>Ngày học
+                    <input type="date" id="f-date" class="field">
+                </label>
+            </div>
+            <label>Ghi chú nội dung đã học
+                <input type="text" id="f-notes" class="field" maxlength="200" placeholder="VD: Luyện truy vấn SQL JOIN &amp; Group By">
+            </label>
+            <p class="form-error" id="f-error"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn-soft" id="btnCancelSession">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu phiên học</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="js/components.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/statistics.js"></script>
+</body>
+</html>

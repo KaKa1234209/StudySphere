@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Mục tiêu học tập</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+    <link rel="stylesheet" href="css/skilltrack.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <!-- Banner đầu trang -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">SKILLTRACK · QUẢN LÝ MỤC TIÊU</span>
+                        <h1>Mục tiêu &amp; Lộ trình học tập</h1>
+                        <p>Chia mục tiêu lớn thành các bước nhỏ, theo dõi phần trăm tiến độ tự động và duy trì kỷ luật mỗi ngày.</p>
+                        <button class="sj-btn-white" id="btnAddGoal"><i class="fa-solid fa-plus"></i> Thêm mục tiêu</button>
+                    </div>
+                    <div class="sj-count"><b id="heroAvg">0%</b><span>tiến độ TB</span></div>
+                </section>
+
+                <!-- Thống kê nhanh theo trạng thái mục tiêu -->
+                <section class="tk-stats" id="goalStats" aria-label="Thống kê mục tiêu"></section>
+
+                <!-- Bảng danh sách mục tiêu -->
+                <section class="sj-list">
+                    <div class="sj-list-head">
+                        <div>
+                            <h2>Danh sách mục tiêu học tập</h2>
+                            <p id="goalCountText">0 mục tiêu</p>
+                        </div>
+                        <div class="tk-filters">
+                            <input type="search" id="searchInput" class="sj-search" placeholder="Tìm theo tên hoặc mô tả mục tiêu..." aria-label="Tìm mục tiêu">
+                            <select id="filterStatus" class="tk-control" aria-label="Lọc theo trạng thái">
+                                <option value="">Mọi trạng thái</option>
+                                <option value="active">Đang thực hiện</option>
+                                <option value="completed">Hoàn thành</option>
+                                <option value="paused">Tạm dừng</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="goalList"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hộp thoại thêm / sửa mục tiêu -->
+    <dialog id="goalDlg" class="dlg dlg-wide">
+        <form id="goalForm" novalidate>
+            <h3 id="dlgTitle">Thêm mục tiêu mới</h3>
+            <label>Tên mục tiêu
+                <input id="g-title" class="field" maxlength="200" placeholder="VD: Hoàn thành StudySphere">
+            </label>
+            <label>Mô tả mục tiêu <span class="opt">(không bắt buộc)</span>
+                <textarea id="g-desc" class="field" rows="2" maxlength="500" placeholder="Mục đích, kết quả mong muốn đạt được..."></textarea>
+            </label>
+            <div class="dlg-row three">
+                <label>Ngày bắt đầu
+                    <input id="g-start" type="date" class="field">
+                </label>
+                <label>Thời hạn hoàn thành
+                    <input id="g-target" type="date" class="field">
+                </label>
+                <label>Trạng thái
+                    <select id="g-status" class="field">
+                        <option value="active">Đang thực hiện</option>
+                        <option value="completed">Hoàn thành</option>
+                        <option value="paused">Tạm dừng</option>
+                    </select>
+                </label>
+            </div>
+            <label id="initialStepsWrap">Các bước thực hiện ban đầu <span class="opt">(mỗi dòng 1 bước, có thể thêm/sửa sau)</span>
+                <textarea id="g-steps" class="field" rows="4" placeholder="Thiết kế database&#10;Hoàn thiện CRUD môn học&#10;Hoàn thiện quản lý ghi chú&#10;Hoàn thiện dashboard&#10;Kiểm thử toàn hệ thống"></textarea>
+            </label>
+            <p class="form-error" id="g-error" role="alert"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn-soft" id="btnCancel">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu mục tiêu</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="js/components.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/goals.js"></script>
+</body>
+</html>

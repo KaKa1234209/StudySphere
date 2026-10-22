@@ -1,0 +1,145 @@
+/* ==========================================================
+   auth.css – Giao diện Đăng nhập, Đăng ký (Tông tím StudySphere)
+   ========================================================== */
+:root {
+  --brand: #8c7ad0;
+  --brand-dark: #6a58b0;
+  --brand-light: #a99be8;
+  --brand-soft: #ece8fa;
+  --ink: #2b2340;
+  --muted: #7a7092;
+  --line: #e4dcf4;
+  --surface: #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body.auth-page {
+  margin: 0;
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: var(--ink);
+  background: linear-gradient(135deg, #f7dcef 0%, #e6ddfb 50%, #d6cef6 100%) fixed;
+}
+
+.auth-card {
+  width: min(440px, 100%);
+  padding: 36px 34px;
+  border-radius: 26px;
+  background: rgba(255, 255, 255, .92);
+  border: 1px solid #fff;
+  box-shadow: 0 24px 60px -20px rgba(90, 70, 160, .35);
+}
+
+.auth-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--brand-dark);
+  margin-bottom: 18px;
+}
+.auth-brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+.auth-brand b {
+  color: var(--brand-light);
+}
+
+.auth-card h1 {
+  margin: 0 0 6px;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+.auth-card p.sub {
+  margin: 0 0 22px;
+  font-size: .92rem;
+  color: var(--muted);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: .86rem;
+  font-weight: 700;
+}
+.auth-input {
+  padding: 11px 14px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  font: inherit;
+  font-size: .94rem;
+  color: var(--ink);
+  background: #fff;
+}
+.auth-input:focus {
+  outline: none;
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px var(--brand-soft);
+}
+
+.auth-error {
+  min-height: 1.2em;
+  margin: 0;
+  font-size: .85rem;
+  font-weight: 600;
+  color: #c0504d;
+}
+
+.auth-btn {
+  padding: 12px 18px;
+  border: 0;
+  border-radius: 14px;
+  background: linear-gradient(135deg, var(--brand) 0%, var(--brand-dark) 100%);
+  color: #fff;
+  font: inherit;
+  font-size: .96rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 12px 24px -10px var(--brand-dark);
+  transition: transform .12s ease, opacity .15s ease;
+}
+.auth-btn:hover {
+  opacity: .95;
+}
+.auth-btn:active {
+  transform: translateY(1px);
+}
+
+.auth-demo {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  font-size: .82rem;
+  text-align: center;
+}
+
+.auth-foot {
+  margin-top: 20px;
+  text-align: center;
+  font-size: .88rem;
+  color: var(--muted);
+}
+.auth-foot a {
+  color: var(--brand-dark);
+  font-weight: 700;
+  text-decoration: none;
+}
+.auth-foot a:hover {
+  text-decoration: underline;
+}

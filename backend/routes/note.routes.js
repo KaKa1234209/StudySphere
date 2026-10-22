@@ -2,7 +2,7 @@ const router = require("express").Router();
 const authenticate = require("../middleware/authenticate");
 const validate = require("../middleware/validate");
 const v = require("../validators/note.validator");
-const c = require("../controllers/note.controller");
+const c = require("../controller/note.controller");
 
 router.use(authenticate); // mọi route ghi chú đều cần đăng nhập
 

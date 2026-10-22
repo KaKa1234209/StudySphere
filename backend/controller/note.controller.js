@@ -1,4 +1,4 @@
-const service = require("../services/note.service");
+const service = require("../service/note.service");
 
 // Controller chỉ nhận request → gọi service → trả response. Lỗi chuyển cho error-handler (next).
 const wrap = fn => (req, res, next) => Promise.resolve(fn(req, res)).catch(next);

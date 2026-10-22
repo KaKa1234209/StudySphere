@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudySphere - Đăng nhập</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <main class="auth-card">
+        <a class="auth-brand" href="index.html">
+            <img src="../images/favicon.png" alt="" onerror="this.src='/images/favicon.png'">
+            <span>Study<b>Sphere</b></span>
+        </a>
+        <h1>Chào mừng trở lại!</h1>
+        <p class="sub">Đăng nhập để tiếp tục theo dõi mục tiêu, nhiệm vụ và chuỗi ngày học.</p>
+
+        <form class="auth-form" id="loginForm" novalidate>
+            <label>Email
+                <input type="email" id="email" class="auth-input" value="sinhvien@studysphere.vn" placeholder="ban@email.com" required>
+            </label>
+            <label>Mật khẩu
+                <input type="password" id="password" class="auth-input" value="123456" placeholder="••••••••" required>
+            </label>
+            <p class="auth-error" id="authError" role="alert"></p>
+            <button type="submit" class="auth-btn">Đăng nhập</button>
+        </form>
+
+        <div class="auth-demo">
+            Tài khoản mẫu điền sẵn: <b>sinhvien@studysphere.vn</b> / Mật khẩu: <b>123456</b>
+        </div>
+
+        <div class="auth-foot">
+            Chưa có tài khoản? <a href="register.html">Đăng ký ngay</a> · <a href="dashboard.html">Vào thẳng ứng dụng</a>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+</body>
+</html>

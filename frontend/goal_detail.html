@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Chi tiết mục tiêu</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+    <link rel="stylesheet" href="css/skilltrack.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <div>
+                    <a class="gd-back" href="goals.html"><i class="fa-solid fa-arrow-left"></i> Quay lại danh sách mục tiêu</a>
+                </div>
+
+                <!-- Banner mục tiêu -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">CHI TIẾT MỤC TIÊU HỌC TẬP</span>
+                        <h1 id="goalTitle">Đang tải mục tiêu...</h1>
+                        <p id="goalDesc"></p>
+                    </div>
+                    <div class="sj-count">
+                        <b id="goalPct">0%</b>
+                        <span id="goalStepRatio">0/0 bước</span>
+                    </div>
+                </section>
+
+                <div class="gd-layout">
+                    <!-- Cột trái: Các bước thực hiện -->
+                    <section class="gd-card">
+                        <div class="gd-head">
+                            <div>
+                                <h2>Các bước thực hiện</h2>
+                                <p style="margin:4px 0 0;font-size:.86rem;color:var(--muted)">
+                                    Đánh dấu hoàn thành từng bước để hệ thống tự động tính phần trăm tiến độ.
+                                </p>
+                            </div>
+                            <span class="st-badge active" id="goalStatusBadge">Đang thực hiện</span>
+                        </div>
+
+                        <!-- Thanh tiến độ trực quan -->
+                        <div class="st-progress-wrap" style="margin-bottom:22px">
+                            <div class="st-progress-head">
+                                <span id="progFormula">Tiến độ: 0/0 × 100% = 0%</span>
+                                <span id="progPercentText">0%</span>
+                            </div>
+                            <div class="st-progress-track" style="height:12px">
+                                <div class="st-progress-fill" id="progBar" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Thông tin ngày tháng -->
+                        <div class="gd-meta-grid">
+                            <div class="gd-meta-item">
+                                <span>Ngày bắt đầu</span>
+                                <strong id="metaStart">--/--/----</strong>
+                            </div>
+                            <div class="gd-meta-item">
+                                <span>Thời hạn</span>
+                                <strong id="metaTarget">--/--/----</strong>
+                            </div>
+                            <div class="gd-meta-item">
+                                <span>Hoàn thành</span>
+                                <strong id="metaDoneSteps">0 / 0 bước</strong>
+                            </div>
+                        </div>
+
+                        <!-- Form thêm bước mới -->
+                        <form class="step-add-bar" id="addStepForm" novalidate>
+                            <input type="text" id="newStepTitle" class="field" style="margin:0" maxlength="200" placeholder="Nhập bước thực hiện mới (VD: Kiểm thử toàn hệ thống)...">
+                            <button type="submit" class="btn-primary"><i class="fa-solid fa-plus"></i> Thêm bước</button>
+                        </form>
+
+                        <!-- Danh sách các bước -->
+                        <ul class="step-list" id="stepList"></ul>
+                    </section>
+
+                    <!-- Cột phải: Ghi nhận phiên học cho mục tiêu này -->
+                    <aside class="gd-card">
+                        <div class="gd-head">
+                            <div>
+                                <h2>Ghi nhận phiên học</h2>
+                                <p style="margin:4px 0 0;font-size:.84rem;color:var(--muted)">Lưu thời lượng học cho mục tiêu này</p>
+                            </div>
+                        </div>
+
+                        <form id="sessionForm" novalidate>
+                            <label style="display:block;margin-bottom:12px;font-size:.86rem;font-weight:600">
+                                Thời lượng học (phút)
+                                <input type="number" id="s-minutes" class="field" min="5" max="600" value="45" required>
+                            </label>
+                            <label style="display:block;margin-bottom:12px;font-size:.86rem;font-weight:600">
+                                Ghi chú phiên học <span class="opt">(không bắt buộc)</span>
+                                <input type="text" id="s-notes" class="field" maxlength="200" placeholder="VD: Làm xong phần thiết kế ERD">
+                            </label>
+                            <button type="submit" class="btn-primary" style="width:100%;justify-content:center">
+                                <i class="fa-solid fa-clock"></i> Lưu phiên học
+                            </button>
+                        </form>
+
+                        <hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+
+                        <h3 style="margin:0 0 10px;font-size:.96rem">Lịch sử học mục tiêu này</h3>
+                        <div id="goalSessionList"></div>
+                    </aside>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hộp thoại sửa tên bước -->
+    <dialog id="editStepDlg" class="dlg">
+        <form id="editStepForm" novalidate>
+            <h3>Sửa bước thực hiện</h3>
+            <label>Nội dung bước
+                <input type="text" id="editStepInput" class="field" maxlength="200">
+            </label>
+            <p class="form-error" id="editStepError"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn-soft" id="btnCancelStep">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="js/components.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/goal_detail.js"></script>
+</body>
+</html>

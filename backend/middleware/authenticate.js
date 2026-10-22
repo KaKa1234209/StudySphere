@@ -1,19 +1,27 @@
 const jwt = require("jsonwebtoken");
 const AppError = require("../utils/AppError");
 
-// Gắn req.user = { id } cho các route cần đăng nhập.
-// (Nếu Thành viên 1 đã có bản chính thức thì dùng bản của họ.)
+// Gắn req.user = { id, role } cho các route cần đăng nhập.
 module.exports = (req, res, next) => {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+
+  if (token) {
+    try {
+      const payload = jwt.verify(token, process.env.JWT_SECRET || "studysphere-secret");
+      req.user = { id: payload.id, role: payload.role || "user" };
+      return next();
+    } catch {
+      if (process.env.DEV_NO_AUTH !== "true") {
+        return next(new AppError(401, "Bạn cần đăng nhập"));
+      }
+    }
+  }
+
   if (process.env.DEV_NO_AUTH === "true") {
-    req.user = { id: 1 };
+    req.user = { id: 1, role: "user" };
     return next();
   }
-  const token = (req.headers.authorization || "").replace("Bearer ", "");
-  try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = { id: payload.id };
-    next();
-  } catch {
-    next(new AppError(401, "Bạn cần đăng nhập"));
-  }
+
+  next(new AppError(401, "Bạn cần đăng nhập"));
 };

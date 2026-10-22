@@ -5,14 +5,18 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>StudySphere – Quản lý học tập thông minh</title>
   <link rel="icon" type="image/png" href="images/favicon.png">
+  <link rel="stylesheet" href="css/notehub.css">
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/home.css">
+  <style>
+    body { margin: 0; font-family: system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--ink); }
+  </style>
 </head>
 <body>
   <!-- Thanh trên cùng: chỉ có logo và nút đăng nhập/đăng ký -->
   <header class="land-top">
     <a class="land-brand" href="index.html">
-      <img src="../images/favicon.png" alt="">
+      <img src="../images/favicon.png" alt="" onerror="this.src='/images/favicon.png'">
       <span>Study<b>Sphere</b></span>
     </a>
     <div class="land-actions" id="landActions">
