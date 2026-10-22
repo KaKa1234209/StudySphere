@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Lịch học</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <!-- Banner đầu trang -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">LỊCH HỌC</span>
+                        <h1>Lịch deadline của bạn</h1>
+                        <p>Xem toàn bộ hạn nộp theo tháng, bấm vào một ngày để xem và thêm nhiệm vụ.</p>
+                        <a class="sj-btn-white" id="btnAdd" href="tasks.html"><i class="fa-solid fa-plus"></i> Thêm nhiệm vụ</a>
+                    </div>
+                    <div class="sj-count"><b id="heroCount">0</b><span>deadline trong tháng</span></div>
+                </section>
+
+                <div class="sc-layout">
+                    <!-- Lịch tháng -->
+                    <section class="card sc-cal">
+                        <div class="sc-cal-head">
+                            <h2 id="monthTitle">Tháng</h2>
+                            <div class="sc-nav">
+                                <select id="scSubject" class="tk-control" aria-label="Lọc theo môn học"></select>
+                                <button type="button" class="sc-nav-btn" id="btnPrev" aria-label="Tháng trước"><i class="fa-solid fa-chevron-left"></i></button>
+                                <button type="button" class="btn-soft" id="btnToday">Hôm nay</button>
+                                <button type="button" class="sc-nav-btn" id="btnNext" aria-label="Tháng sau"><i class="fa-solid fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div class="sc-grid" id="calendar"></div>
+                    </section>
+
+                    <!-- Cột bên phải -->
+                    <aside class="sc-side">
+                        <section class="card">
+                            <div class="card-header">
+                                <h3 id="dayTitle">Nhiệm vụ trong ngày</h3>
+                                <span class="sub-label" id="dayCount">0 việc</span>
+                            </div>
+                            <div id="dayList"></div>
+                            <a class="btn-primary sc-add" id="btnAddDay" href="tasks.html"><i class="fa-solid fa-plus"></i> Thêm nhiệm vụ ngày này</a>
+                        </section>
+
+                        <section class="card">
+                            <div class="card-header">
+                                <h3>Sắp đến hạn</h3>
+                                <span class="sub-label">7 ngày tới</span>
+                            </div>
+                            <div id="weekList"></div>
+                        </section>
+                    </aside>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/components.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/schedule.js"></script>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#8c7ad0">
+    <title>StudySphere - Nhiệm vụ</title>
+    <link rel="icon" type="image/png" href="images/favicon.png">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/studyflow.css">
+</head>
+<body>
+    <div class="dashboard-container">
+        <aside class="sidebar" id="sidebar"></aside>
+
+        <main class="main-wrapper">
+            <header class="top-header" id="topbar"></header>
+
+            <div class="sj-page">
+                <!-- Banner đầu trang -->
+                <section class="sj-hero">
+                    <div class="sj-hero-text">
+                        <span class="sj-eyebrow">QUẢN LÝ NHIỆM VỤ</span>
+                        <h1 id="tkTitle">Nhiệm vụ &amp; bài tập</h1>
+                        <p id="tkSub">Theo dõi trạng thái, mức ưu tiên và deadline của mọi môn học.</p>
+                        <button class="sj-btn-white" id="btnAdd"><i class="fa-solid fa-plus"></i> Thêm nhiệm vụ</button>
+                    </div>
+                    <div class="sj-count"><b id="heroCount">0</b><span>việc còn lại</span></div>
+                </section>
+
+                <!-- Thống kê theo trạng thái -->
+                <section class="tk-stats" id="tkStats" aria-label="Thống kê theo trạng thái"></section>
+
+                <!-- Danh sách -->
+                <section class="sj-list">
+                    <div class="tk-tabs" id="tkTabs" role="tablist" aria-label="Lọc theo môn học"></div>
+
+                    <div class="sj-list-head">
+                        <div>
+                            <h2>Danh sách nhiệm vụ</h2>
+                            <p id="countText">0 nhiệm vụ</p>
+                        </div>
+                        <div class="tk-filters">
+                            <input type="search" id="searchInput" class="sj-search" placeholder="Tìm theo tên nhiệm vụ" aria-label="Tìm nhiệm vụ">
+                            <input type="date" id="filterDate" class="tk-control" aria-label="Lọc theo ngày hạn nộp">
+                            <select id="filterPriority" class="tk-control" aria-label="Lọc theo mức ưu tiên">
+                                <option value="">Mọi mức ưu tiên</option>
+                                <option value="high">Ưu tiên cao</option>
+                                <option value="medium">Ưu tiên trung bình</option>
+                                <option value="low">Ưu tiên thấp</option>
+                            </select>
+                            <button type="button" class="btn-soft" id="btnClear" hidden><i class="fa-solid fa-xmark"></i> Xóa lọc</button>
+                        </div>
+                    </div>
+
+                    <div id="taskList"></div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hộp thoại thêm / sửa -->
+    <dialog id="dlg" class="dlg dlg-wide">
+        <form id="form" novalidate>
+            <h3 id="dlg-title">Thêm nhiệm vụ</h3>
+            <label>Tên nhiệm vụ <input id="t-title" class="field" maxlength="150" placeholder="VD: Nộp bài tập chương 3"></label>
+            <label>Mô tả <span class="opt">(không bắt buộc)</span>
+                <textarea id="t-desc" class="field" rows="2" maxlength="500" placeholder="Ghi chú thêm về nhiệm vụ"></textarea>
+            </label>
+            <div class="dlg-row">
+                <label>Môn học <select id="t-subject" class="field"></select></label>
+                <label>Mức ưu tiên
+                    <select id="t-priority" class="field">
+                        <option value="low">Thấp</option>
+                        <option value="medium" selected>Trung bình</option>
+                        <option value="high">Cao</option>
+                    </select>
+                </label>
+            </div>
+            <div class="dlg-row three">
+                <label>Hạn nộp <input id="t-date" type="date" class="field"></label>
+                <label>Giờ <input id="t-time" type="time" class="field"></label>
+                <label>Trạng thái
+                    <select id="t-status" class="field">
+                        <option value="todo">Chưa làm</option>
+                        <option value="doing">Đang làm</option>
+                        <option value="done">Hoàn thành</option>
+                    </select>
+                </label>
+            </div>
+            <p class="form-error" id="t-error" role="alert"></p>
+            <div class="dlg-actions">
+                <button type="button" class="btn-soft" id="btn-cancel">Hủy</button>
+                <button type="submit" class="btn-primary">Lưu</button>
+            </div>
+        </form>
+    </dialog>
+
+    <script src="js/components.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/tasks.js"></script>
+</body>
+</html>

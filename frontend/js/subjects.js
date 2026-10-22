@@ -53,7 +53,16 @@
       return item;
     },
     update: async (id, body) => writeLocal(readLocal().map(s => (s.id === Number(id) ? { ...s, ...body } : s))),
-    remove: async id => writeLocal(readLocal().filter(s => s.id !== Number(id))),
+    remove: async id => {
+      writeLocal(readLocal().filter(s => s.id !== Number(id)));
+      // Nhiệm vụ của môn bị xóa vẫn được giữ lại, chỉ mất liên kết với môn
+      try {
+        const tasks = JSON.parse(localStorage.getItem("sf_tasks"));
+        if (Array.isArray(tasks)) {
+          localStorage.setItem("sf_tasks", JSON.stringify(tasks.map(t => (t.subject_id === Number(id) ? { ...t, subject_id: null } : t))));
+        }
+      } catch { /* bỏ qua */ }
+    },
   } : {
     list: () => http(API),
     create: body => http(API, { method: "POST", body: JSON.stringify(body) }),
@@ -84,6 +93,15 @@
   document.body.append(confirmDlg);
 
   // ---------- Hiển thị ----------
+  function taskSummary(subjectId) {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem("sf_tasks")) || []; } catch { /* bỏ qua */ }
+    const mine = list.filter(t => t.subject_id === subjectId);
+    if (mine.length === 0) return "Chưa có nhiệm vụ";
+    const done = mine.filter(t => t.status === "done").length;
+    return `${mine.length} nhiệm vụ · ${done} hoàn thành`;
+  }
+
   function card(s) {
     const color = COLORS[s.id % COLORS.length];
     return `
@@ -99,6 +117,10 @@
           <i class="fa-solid fa-chalkboard-user"></i>
           <span>${s.teacher ? esc(s.teacher) : "Chưa có giáo viên"}</span>
         </div>
+        <a class="sj-line sj-link" href="tasks.html?subject=${s.id}" title="Xem nhiệm vụ của môn này">
+          <i class="fa-solid fa-list-check"></i>
+          <span>${taskSummary(s.id)}</span>
+        </a>
         <div class="sj-card-foot">
           <span class="sj-date"><i class="fa-regular fa-calendar"></i> ${fmtDate(s.created_at)}</span>
           <div class="sj-actions">
