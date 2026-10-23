@@ -2,7 +2,7 @@
 class ApiUnavailable extends Error {}
 
 async function request(url, options = {}) {
-  const token = localStorage.getItem(userKey("sf_goals"))
+  const token = localStorage.getItem("token");
   let res;
   try {
     res = await fetch(url, {
@@ -16,7 +16,9 @@ async function request(url, options = {}) {
     throw new ApiUnavailable("Không kết nối được máy chủ");
   }
 
-  if (res.status === 401 && typeof DEV_NO_AUTH === "undefined") {
+  // Chỉ tự động đá về trang login khi gọi các API dữ liệu bị 401 (không áp dụng cho chính trang login)
+  const isAuthAttempt = url.includes("/api/auth/login") || url.includes("/api/auth/register");
+  if (res.status === 401 && !isAuthAttempt && typeof DEV_NO_AUTH === "undefined") {
     localStorage.removeItem("token");
     location.href = "login.html";
     return;
@@ -40,9 +42,10 @@ const withFallback = (remote, local) => async (...args) => {
 
 /* ===== Ghi chú lưu tạm trong trình duyệt (NoteHub) ===== */
 const NOTE_KEY = "studysphere.notes";
+const noteKey = () => (typeof userKey === "function" ? userKey(NOTE_KEY) : NOTE_KEY);
 const noteStore = {
-  all: () => { try { return JSON.parse(localStorage.getItem(NOTE_KEY)) || []; } catch { return []; } },
-  save: list => localStorage.setItem(NOTE_KEY, JSON.stringify(list)),
+  all: () => { try { return JSON.parse(localStorage.getItem(noteKey())) || []; } catch { return []; } },
+  save: list => localStorage.setItem(noteKey(), JSON.stringify(list)),
 };
 const cleanTags = (tags = []) => [...new Set(tags.map(t => String(t).trim()).filter(Boolean))];
 
@@ -101,6 +104,7 @@ const localNotes = {
 const GOAL_KEY = "studysphere.goals";
 const SESSION_KEY = "studysphere.sessions";
 const USER_KEY = "user";
+const scopedKey = k => (typeof userKey === "function" ? userKey(k) : k);
 
 const defaultGoalsSeed = () => [
   {
@@ -160,10 +164,10 @@ const computeGoalProgress = g => {
 const goalStore = {
   all() {
     try {
-      const raw = localStorage.getItem(GOAL_KEY);
+      const raw = localStorage.getItem(scopedKey(GOAL_KEY));
       if (!raw) {
         const seed = defaultGoalsSeed();
-        localStorage.setItem(GOAL_KEY, JSON.stringify(seed));
+        localStorage.setItem(scopedKey(GOAL_KEY), JSON.stringify(seed));
         return seed;
       }
       return JSON.parse(raw) || [];
@@ -172,7 +176,7 @@ const goalStore = {
     }
   },
   save(list) {
-    localStorage.setItem(GOAL_KEY, JSON.stringify(list));
+    localStorage.setItem(scopedKey(GOAL_KEY), JSON.stringify(list));
   },
 };
 
@@ -291,7 +295,7 @@ const localGoals = {
 const sessionStore = {
   all() {
     try {
-      const raw = localStorage.getItem(SESSION_KEY);
+      const raw = localStorage.getItem(scopedKey(SESSION_KEY));
       if (!raw) {
         const now = new Date();
         const dayStr = n => { const d = new Date(now); d.setDate(d.getDate() + n); return d.toISOString(); };
@@ -301,7 +305,7 @@ const sessionStore = {
           { id: 3, goal_id: 1, goal_title: "Hoàn thành StudySphere", started_at: dayStr(-1), duration_minutes: 90, notes: "Xây dựng SkillTrack" },
           { id: 4, goal_id: 1, goal_title: "Hoàn thành StudySphere", started_at: dayStr(0), duration_minutes: 60, notes: "Kiểm thử tiến độ" },
         ];
-        localStorage.setItem(SESSION_KEY, JSON.stringify(seed));
+        localStorage.setItem(scopedKey(SESSION_KEY), JSON.stringify(seed));
         return seed;
       }
       return JSON.parse(raw) || [];
@@ -310,7 +314,7 @@ const sessionStore = {
     }
   },
   save(list) {
-    localStorage.setItem(SESSION_KEY, JSON.stringify(list));
+    localStorage.setItem(scopedKey(SESSION_KEY), JSON.stringify(list));
   },
 };
 
@@ -381,40 +385,152 @@ const localDashboard = {
 };
 
 /* ===== Danh sách API ===== */
+const ACCOUNTS_KEY = "studysphere.accounts";
+
+// Băm mật khẩu đơn giản cho chế độ offline (Live Server) để bảo mật mật khẩu
+function simpleHash(str) {
+  let h = 2166136261;
+  const s = String(str || "");
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return "h_" + (h >>> 0).toString(16);
+}
+
+const localAccountsStore = {
+  all() {
+    try {
+      const raw = localStorage.getItem(ACCOUNTS_KEY);
+      if (!raw) {
+        const seed = [
+          {
+            id: 1,
+            full_name: "Sinh viên StudySphere",
+            name: "Sinh viên StudySphere",
+            email: "sinhvien@studysphere.vn",
+            password_hash: simpleHash("123456"),
+            role: "user",
+          },
+        ];
+        localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(seed));
+        return seed;
+      }
+      return JSON.parse(raw) || [];
+    } catch {
+      return [];
+    }
+  },
+  save(list) {
+    localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(list));
+  },
+};
+
 const Api = {
-  auth: {                                               // Thành viên 3 – Xác thực & Hồ sơ
+  auth: {                                               // Thành viên 3 – Xác thực & Hồ sơ (Bảo mật chặt chẽ)
     login: withFallback(
       body => request("/api/auth/login", { method: "POST", body: JSON.stringify(body) }),
       body => {
-        if (!body.email || !body.password) throw new Error("Vui lòng nhập email và mật khẩu");
-        const user = { id: 1, full_name: body.email.split("@")[0], name: body.email.split("@")[0], email: body.email, role: "user" };
-        return { token: "local-demo-token", user };
+        const cleanInput = String(body.email || "").trim().toLowerCase();
+        const rawPass = String(body.password || "");
+        if (!cleanInput || !rawPass) throw new Error("Vui lòng nhập đầy đủ tài khoản (email) và mật khẩu");
+
+        const all = localAccountsStore.all();
+        const acc = all.find(
+          a => a.email.toLowerCase() === cleanInput || (a.full_name || "").toLowerCase() === cleanInput
+        );
+        if (!acc) {
+          throw new Error("Tài khoản chưa được đăng ký! Vui lòng kiểm tra lại hoặc bấm Đăng ký mới.");
+        }
+        if (acc.password_hash !== simpleHash(rawPass)) {
+          throw new Error("Mật khẩu không chính xác! Vui lòng thử lại.");
+        }
+        const { password_hash, ...publicUser } = acc;
+        return { token: "local-jwt-" + acc.id + "-" + Date.now(), user: publicUser };
       }
     ),
     register: withFallback(
       body => request("/api/auth/register", { method: "POST", body: JSON.stringify(body) }),
       body => {
-        if (!body.full_name || !body.email || !body.password) throw new Error("Vui lòng điền đầy đủ thông tin");
-        const user = { id: 1, full_name: body.full_name, name: body.full_name, email: body.email, role: "user" };
-        return { token: "local-demo-token", user };
+        const fullName = String(body.full_name || body.name || "").trim();
+        const cleanEmail = String(body.email || "").trim().toLowerCase();
+        const rawPass = String(body.password || "");
+
+        if (!fullName) throw new Error("Vui lòng nhập họ và tên");
+        if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+          throw new Error("Địa chỉ Email không hợp lệ");
+        }
+        if (rawPass.length < 6) throw new Error("Mật khẩu phải có ít nhất 6 ký tự");
+
+        const all = localAccountsStore.all();
+        if (all.some(a => a.email.toLowerCase() === cleanEmail)) {
+          throw new Error("Tài khoản với Email này đã được đăng ký. Vui lòng đăng nhập!");
+        }
+
+        const nextId = all.length ? Math.max(...all.map(a => a.id)) + 1 : 1;
+        const newAcc = {
+          id: nextId,
+          full_name: fullName,
+          name: fullName,
+          email: cleanEmail,
+          password_hash: simpleHash(rawPass),
+          role: "user",
+        };
+        all.push(newAcc);
+        localAccountsStore.save(all);
+
+        const { password_hash, ...publicUser } = newAcc;
+        return { token: "local-jwt-" + nextId + "-" + Date.now(), user: publicUser };
       }
     ),
     me: withFallback(
       () => request("/api/auth/me"),
-      () => JSON.parse(localStorage.getItem(USER_KEY)) || { id: 1, full_name: "Sinh viên StudySphere", name: "Sinh viên StudySphere", email: "sinhvien@studysphere.vn", role: "user" }
+      () => {
+        const u = JSON.parse(localStorage.getItem(USER_KEY));
+        if (!u) throw new Error("Bạn cần đăng nhập");
+        return u;
+      }
     ),
     updateProfile: withFallback(
       body => request("/api/auth/me", { method: "PUT", body: JSON.stringify(body) }),
       body => {
         const cur = JSON.parse(localStorage.getItem(USER_KEY)) || {};
-        const updated = { ...cur, full_name: body.full_name || cur.full_name, name: body.full_name || cur.name, email: body.email || cur.email };
+        const nextName = String(body.full_name || cur.full_name || "").trim();
+        const nextEmail = String(body.email || cur.email || "").trim().toLowerCase();
+        if (!nextName) throw new Error("Họ và tên không được để trống");
+
+        const all = localAccountsStore.all();
+        if (all.some(a => a.id !== cur.id && a.email.toLowerCase() === nextEmail)) {
+          throw new Error("Email này đã thuộc về tài khoản khác");
+        }
+        const idx = all.findIndex(a => a.id === cur.id);
+        if (idx !== -1) {
+          all[idx].full_name = nextName;
+          all[idx].name = nextName;
+          all[idx].email = nextEmail;
+          localAccountsStore.save(all);
+        }
+        const updated = { ...cur, full_name: nextName, name: nextName, email: nextEmail };
         localStorage.setItem(USER_KEY, JSON.stringify(updated));
         return updated;
       }
     ),
     changePassword: withFallback(
       body => request("/api/auth/password", { method: "PUT", body: JSON.stringify(body) }),
-      () => ({ message: "Đổi mật khẩu thành công" })
+      body => {
+        const cur = JSON.parse(localStorage.getItem(USER_KEY)) || {};
+        const all = localAccountsStore.all();
+        const acc = all.find(a => a.id === cur.id || a.email === cur.email);
+        if (!acc || acc.password_hash !== simpleHash(body.current_password)) {
+          throw new Error("Mật khẩu hiện tại không đúng");
+        }
+        if (!body.new_password || String(body.new_password).length < 6) {
+          throw new Error("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+        acc.password_hash = simpleHash(body.new_password);
+        localAccountsStore.save(all);
+        return { message: "Đổi mật khẩu thành công" };
+      }
     ),
   },
 

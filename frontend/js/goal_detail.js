@@ -5,6 +5,7 @@
 (() => {
   renderLayout("goals", "SkillTrack / Chi tiết mục tiêu");
   const $ = id => document.getElementById(id);
+  const useSF = typeof SFData !== "undefined" && SFData.goals && SFData.steps;
 
   const params = new URLSearchParams(location.search);
   const goalId = Number(params.get("id")) || 1;
@@ -87,7 +88,17 @@
 
   async function loadGoalFromApi() {
     try {
-      const freshGoal = await Api.goals.get(goalId);
+      let freshGoal;
+      if (useSF) {
+        freshGoal = await SFData.goals.get(goalId);
+        const rawSteps = await SFData.steps.list(goalId);
+        freshGoal.steps = rawSteps.map(s => ({
+          ...s,
+          is_completed: s.done !== undefined ? (s.done ? 1 : 0) : s.is_completed,
+        }));
+      } else {
+        freshGoal = await Api.goals.get(goalId);
+      }
       renderGoal(freshGoal);
     } catch (err) {
       toast(err.message);
@@ -96,7 +107,13 @@
 
   async function loadGoalSessions() {
     try {
-      const list = await Api.studySessions.list({ goalId });
+      let list;
+      if (useSF && SFData.sessions) {
+        const all = await SFData.sessions.list();
+        list = all.filter(s => Number(s.goal_id) === goalId);
+      } else {
+        list = await Api.studySessions.list({ goalId });
+      }
       if (!list.length) {
         $("goalSessionList").innerHTML = `<p class="sc-empty">Chưa có phiên học nào cho mục tiêu này.</p>`;
         return;
@@ -128,7 +145,8 @@
       return;
     }
     try {
-      await Api.goals.addStep(goalId, { title });
+      if (useSF) await SFData.steps.create(goalId, title);
+      else await Api.goals.addStep(goalId, { title });
       input.value = "";
       await loadGoalFromApi();
       toast("Đã thêm bước thực hiện");
@@ -150,7 +168,12 @@
     const action = btn.dataset.action;
     if (action === "toggle") {
       try {
-        await Api.goals.toggleStep(goalId, stepId);
+        if (useSF) {
+          const nextDone = !(step.is_completed === 1 || step.is_completed === true || step.done === true);
+          await SFData.steps.update(stepId, { done: nextDone, is_completed: nextDone ? 1 : 0 });
+        } else {
+          await Api.goals.toggleStep(goalId, stepId);
+        }
         await loadGoalFromApi();
       } catch (err) {
         toast(err.message);
@@ -164,7 +187,8 @@
     } else if (action === "delete") {
       if (!confirm(`Xóa bước "${step.title}"?`)) return;
       try {
-        await Api.goals.removeStep(goalId, stepId);
+        if (useSF) await SFData.steps.remove(stepId);
+        else await Api.goals.removeStep(goalId, stepId);
         await loadGoalFromApi();
         toast("Đã xóa bước thực hiện");
       } catch (err) {
@@ -181,7 +205,8 @@
       return;
     }
     try {
-      await Api.goals.updateStep(goalId, editingStepId, { title });
+      if (useSF) await SFData.steps.update(editingStepId, { title });
+      else await Api.goals.updateStep(goalId, editingStepId, { title });
       editDlg.close();
       await loadGoalFromApi();
       toast("Đã cập nhật bước thực hiện");
@@ -201,7 +226,11 @@
     const duration_minutes = Number($("s-minutes").value);
     const notes = $("s-notes").value.trim();
     try {
-      await Api.studySessions.create({ goal_id: goalId, duration_minutes, notes });
+      if (useSF && SFData.sessions) {
+        await SFData.sessions.create({ goal_id: goalId, duration_minutes, notes });
+      } else {
+        await Api.studySessions.create({ goal_id: goalId, duration_minutes, notes });
+      }
       $("s-notes").value = "";
       toast("Đã ghi nhận phiên học!");
       await loadGoalSessions();

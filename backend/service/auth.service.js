@@ -28,12 +28,12 @@ exports.register = ({ full_name, name, email, password }) => {
 
   if (!fullName) throw new AppError(400, "Vui lòng nhập họ và tên");
   if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-    throw new AppError(400, "Email không hợp lệ");
+    throw new AppError(400, "Địa chỉ Email không hợp lệ");
   }
   if (rawPass.length < 6) throw new AppError(400, "Mật khẩu phải có ít nhất 6 ký tự");
 
   const existing = db.prepare("SELECT id FROM Users WHERE LOWER(email) = ?").get(cleanEmail);
-  if (existing) throw new AppError(409, "Email này đã được sử dụng");
+  if (existing) throw new AppError(409, "Tài khoản với Email này đã được đăng ký. Vui lòng đăng nhập!");
 
   const info = db
     .prepare("INSERT INTO Users(full_name, email, password_hash, role) VALUES (?, ?, ?, 'user')")
@@ -44,14 +44,20 @@ exports.register = ({ full_name, name, email, password }) => {
 };
 
 exports.login = ({ email, password }) => {
-  const cleanEmail = String(email || "").trim().toLowerCase();
+  const cleanInput = String(email || "").trim();
   const rawPass = String(password || "");
 
-  if (!cleanEmail || !rawPass) throw new AppError(400, "Vui lòng nhập email và mật khẩu");
+  if (!cleanInput || !rawPass) throw new AppError(400, "Vui lòng nhập đầy đủ tài khoản (email) và mật khẩu");
 
-  const user = db.prepare("SELECT * FROM Users WHERE LOWER(email) = ?").get(cleanEmail);
-  if (!user || user.password_hash !== hashPassword(rawPass)) {
-    throw new AppError(401, "Email hoặc mật khẩu không chính xác");
+  const user = db
+    .prepare("SELECT * FROM Users WHERE LOWER(email) = LOWER(?) OR LOWER(full_name) = LOWER(?)")
+    .get(cleanInput, cleanInput);
+
+  if (!user) {
+    throw new AppError(401, "Tài khoản chưa được đăng ký! Vui lòng kiểm tra lại hoặc bấm Đăng ký mới.");
+  }
+  if (user.password_hash !== hashPassword(rawPass)) {
+    throw new AppError(401, "Mật khẩu không chính xác! Vui lòng thử lại.");
   }
 
   return { token: signToken(user), user: publicUser(user) };

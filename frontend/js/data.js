@@ -63,23 +63,23 @@ const SFData = (() => {
   // ==========================================================
 
   // ---------- Dữ liệu mẫu (chỉ dùng lần mở đầu tiên của mỗi tài khoản) ----------
-  // const SEED_SUBJECTS = [
-  //   ["MATH101", "Toán học"], ["PROG201", "Ngôn ngữ lập trình"], ["DB301", "Cơ sở dữ liệu"],
-  //   ["NET201", "Mạng máy tính"], ["WEB301", "Thiết kế web"], ["ENG201", "Tiếng Anh"],
-  // ].map(([code, name], i) => ({ id: i + 1, code, name, teacher: "", created_at: now() }));
+  const SEED_SUBJECTS = [
+    ["MATH101", "Toán học"], ["PROG201", "Ngôn ngữ lập trình"], ["DB301", "Cơ sở dữ liệu"],
+    ["NET201", "Mạng máy tính"], ["WEB301", "Thiết kế web"], ["ENG201", "Tiếng Anh"],
+  ].map(([code, name], i) => ({ id: i + 1, code, name, teacher: "", created_at: now() }));
 
-  // const seedTasks = () => [
-  //   [3, "Làm bài tập chương 3", "Bài 1 đến bài 8 trong giáo trình", "high", 0, "08:00", "doing"],
-  //   [2, "Viết chương trình quản lý sinh viên", "", "high", 2, "23:59", "todo"],
-  //   [3, "Thiết kế sơ đồ ERD", "Gồm 6 bảng chính", "medium", 1, "17:00", "todo"],
-  //   [5, "Hoàn thiện giao diện trang chủ", "", "medium", 4, "", "doing"],
-  //   [6, "Nộp bài viết Unit 5", "Writing task 2", "high", -1, "20:00", "todo"],
-  //   [4, "Cấu hình mạng LAN trên Packet Tracer", "", "low", 6, "", "todo"],
-  //   [1, "Ôn tập giữa kỳ", "", "medium", -2, "", "done"],
-  // ].map(([subject_id, title, description, priority, offset, due_time, status], i) => ({
-  //   id: i + 1, title, description, subject_id, priority, status,
-  //   due_date: shiftDay(offset), due_time: due_time || null, created_at: now(),
-  // }));
+  const seedTasks = () => [
+    [3, "Làm bài tập chương 3", "Bài 1 đến bài 8 trong giáo trình", "high", 0, "08:00", "doing"],
+    [2, "Viết chương trình quản lý sinh viên", "", "high", 2, "23:59", "todo"],
+    [3, "Thiết kế sơ đồ ERD", "Gồm 6 bảng chính", "medium", 1, "17:00", "todo"],
+    [5, "Hoàn thiện giao diện trang chủ", "", "medium", 4, "", "doing"],
+    [6, "Nộp bài viết Unit 5", "Writing task 2", "high", -1, "20:00", "todo"],
+    [4, "Cấu hình mạng LAN trên Packet Tracer", "", "low", 6, "", "todo"],
+    [1, "Ôn tập giữa kỳ", "", "medium", -2, "", "done"],
+  ].map(([subject_id, title, description, priority, offset, due_time, status], i) => ({
+    id: i + 1, title, description, subject_id, priority, status,
+    due_date: shiftDay(offset), due_time: due_time || null, created_at: now(),
+  }));
 
   // ---------- Đọc / ghi localStorage (khóa luôn gắn tên tài khoản) ----------
   function readLocal(key, seed = () => []) {

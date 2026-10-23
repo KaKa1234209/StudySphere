@@ -100,6 +100,15 @@ const NAV = [
   ]},
 ];
 
+// ---------- Bảo vệ trang nội bộ: Chưa đăng nhập thì chuyển về login.html ----------
+(function enforceAuthGuard() {
+  const page = location.pathname.split("/").pop() || "index.html";
+  const publicPages = ["index.html", "login.html", "register.html", ""];
+  if (!publicPages.includes(page) && !localStorage.getItem("token")) {
+    location.replace("login.html");
+  }
+})();
+
 function renderSidebar() {
   const box = document.getElementById("sidebar");
   if (!box) return;
@@ -110,7 +119,7 @@ function renderSidebar() {
   box.innerHTML = `
     <div class="sb-head">
       <a class="sb-brand" href="dashboard.html">
-       <span class="sb-logo"><img src="../images/favicon.png" alt="StudySphere"></span>
+       <span class="sb-logo"><img src="../images/favicon.png" alt="StudySphere" onerror="this.src='/images/favicon.png'"></span>
         <span>Study<b>Sphere</b></span>
       </a>
       <button type="button" class="sb-close" id="btnCloseMenu" aria-label="Đóng menu"><i class="fa-solid fa-xmark"></i></button>
@@ -132,15 +141,46 @@ function renderSidebar() {
   overlay.className = "sb-overlay";
   document.body.append(overlay);
 
+  // Hộp thoại xác nhận đăng xuất để tránh người dùng bấm nhầm
+  const logoutDlg = document.createElement("dialog");
+  logoutDlg.className = "dlg";
+  logoutDlg.innerHTML = `
+    <div class="dlg-body">
+      <h3>Xác nhận đăng xuất</h3>
+      <p>Bạn có chắc chắn muốn đăng xuất tài khoản không?</p>
+      <div class="dlg-actions">
+        <button type="button" class="btn-soft" id="logoutCancelBtn">Hủy</button>
+        <button type="button" class="btn-danger" id="logoutConfirmBtn"><i class="fa-solid fa-right-from-bracket"></i> Đăng xuất</button>
+      </div>
+    </div>`;
+  document.body.append(logoutDlg);
+
   const setOpen = open => document.body.classList.toggle("nav-open", open);
   overlay.addEventListener("click", () => setOpen(false));
   document.getElementById("btnCloseMenu").addEventListener("click", () => setOpen(false));
+
   document.getElementById("btnLogout").addEventListener("click", e => {
     e.preventDefault();
+    if (typeof logoutDlg.showModal === "function") {
+      logoutDlg.showModal();
+    } else if (confirm("Bạn có chắc chắn muốn đăng xuất tài khoản không?")) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      location.href = "login.html";
+    }
+  });
+
+  document.getElementById("logoutCancelBtn").addEventListener("click", () => logoutDlg.close());
+  logoutDlg.addEventListener("click", e => {
+    if (e.target === logoutDlg) logoutDlg.close();
+  });
+  document.getElementById("logoutConfirmBtn").addEventListener("click", () => {
+    logoutDlg.close();
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     location.href = "login.html";
   });
+
   document.addEventListener("keydown", e => { if (e.key === "Escape") setOpen(false); });
 
   return setOpen;
