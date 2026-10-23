@@ -732,3 +732,7 @@ select.field { cursor: pointer; }
   .sc-pill { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%; background: var(--c); font-size: 0; }
   .sc-more { display: none; }
 }
+
+a.th-user{color:inherit;text-decoration:none;cursor:pointer;border-radius:99px;transition:background .15s}
+a.th-user:hover{background:rgba(124,92,252,.1)}
+a.th-user:focus-visible{outline:3px solid #b9a5ef;outline-offset:2px}

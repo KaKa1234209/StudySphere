@@ -150,18 +150,18 @@ function renderTopbar(setOpen) {
   const dateText = new Date().toLocaleDateString("vi-VN", {
     weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"
   });
-
+//Thanh trên
   box.innerHTML = `
     <div class="th-left">
       <button type="button" class="th-menu" id="btnMenu" aria-label="Mở menu"><i class="fa-solid fa-bars"></i></button>
-      <div class="th-crumb">StudyFlow <span>/</span> <strong>${esc(title)}</strong></div>
+      <div class="th-crumb"><strong>${esc(title)}</strong></div>
     </div>
     <div class="th-right">
       <span class="th-date">${esc(dateText)}</span>
-      <div class="th-user">
+        <a class="th-user" href="profile.html" aria-label="Mở hồ sơ cá nhân của ${esc(name)}" title="Hồ sơ cá nhân">
         <span class="th-name">${esc(name)}</span>
         <span class="th-avatar" aria-hidden="true">${esc(name.trim().charAt(0).toUpperCase() || "S")}</span>
-      </div>
+      </a>
     </div>`;
 
   document.getElementById("btnMenu").addEventListener("click", () => setOpen && setOpen(true));
