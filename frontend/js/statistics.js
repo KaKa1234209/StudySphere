@@ -4,6 +4,7 @@
 (() => {
   renderLayout("statistics", "SkillTrack / Thống kê");
   const $ = id => document.getElementById(id);
+  const { summary: loadSummary, sessions: SessionAPI, todayKey } = SFData;   // ĐỔI: lấy từ SFData
 
   const dlg = $("sessionDlg");
   const form = $("sessionForm");
@@ -55,7 +56,7 @@
     // Biểu đồ cột 7 ngày gần nhất
     const daily = study.daily_7_days || [];
     const maxMins = Math.max(60, ...daily.map(d => d.minutes || 0));
-    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayStr = todayKey();                                // ĐỔI: không lệch ngày
 
     $("weeklyChart").innerHTML = daily
       .map(d => {
@@ -131,8 +132,7 @@
 
   async function loadAll() {
     try {
-      const summary = await Api.dashboard.summary();
-      renderSummary(summary);
+      renderSummary(await loadSummary());                       // ĐỔI
     } catch (err) {
       toast(err.message);
     }
@@ -140,7 +140,7 @@
 
   $("btnLogSession").addEventListener("click", () => {
     $("f-minutes").value = 45;
-    $("f-date").value = new Date().toISOString().slice(0, 10);
+    $("f-date").value = todayKey();                             // ĐỔI: không lệch ngày
     $("f-notes").value = "";
     $("f-error").textContent = "";
     dlg.showModal();
@@ -163,7 +163,7 @@
     const started_at = dateVal ? new Date(dateVal + "T09:00:00").toISOString() : new Date().toISOString();
 
     try {
-      await Api.studySessions.create({
+      await SessionAPI.create({                                 // ĐỔI
         goal_id: $("f-goal").value || null,
         duration_minutes,
         started_at,
@@ -182,7 +182,7 @@
     if (!btn) return;
     if (!confirm("Xóa phiên học này?")) return;
     try {
-      await Api.studySessions.remove(btn.dataset.delSession);
+      await SessionAPI.remove(btn.dataset.delSession);          // ĐỔI
       toast("Đã xóa phiên học");
       await loadAll();
     } catch (err) {

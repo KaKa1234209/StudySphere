@@ -4,6 +4,7 @@
 (() => {
   renderLayout("goals", "SkillTrack / Mục tiêu");
   const $ = id => document.getElementById(id);
+  const { goals: GoalAPI, todayKey } = SFData;                 // ĐỔI: lấy từ SFData, không dùng Api nữa
 
   const STATUS_LABEL = {
     active: "Đang thực hiện",
@@ -141,7 +142,7 @@
 
   async function loadGoals() {
     try {
-      allGoals = await Api.goals.list();
+      allGoals = await GoalAPI.list();                         // ĐỔI
       renderStats();
       renderList();
     } catch (err) {
@@ -154,7 +155,7 @@
     $("dlgTitle").textContent = goal ? "Chỉnh sửa mục tiêu" : "Thêm mục tiêu mới";
     $("g-title").value = goal ? goal.title : "";
     $("g-desc").value = goal ? goal.description || "" : "";
-    $("g-start").value = goal ? (goal.start_date || "").slice(0, 10) : new Date().toISOString().slice(0, 10);
+    $("g-start").value = goal ? (goal.start_date || "").slice(0, 10) : todayKey();   // ĐỔI: không lệch ngày
     $("g-target").value = goal ? (goal.target_date || "").slice(0, 10) : "";
     $("g-status").value = goal ? goal.status || "active" : "active";
     $("g-steps").value = "";
@@ -191,10 +192,10 @@
 
     try {
       if (editingId) {
-        await Api.goals.update(editingId, payload);
+        await GoalAPI.update(editingId, payload);              // ĐỔI
         toast("Đã cập nhật mục tiêu");
       } else {
-        await Api.goals.create(payload);
+        await GoalAPI.create(payload);                         // ĐỔI
         toast("Đã tạo mục tiêu mới");
       }
       dlg.close();
@@ -237,7 +238,7 @@
     } else if (btn.dataset.action === "delete") {
       if (!confirm(`Bạn có chắc muốn xóa mục tiêu "${goal.title}"?`)) return;
       try {
-        await Api.goals.remove(goal.id);
+        await GoalAPI.remove(goal.id);                         // ĐỔI
         toast("Đã xóa mục tiêu");
         await loadGoals();
       } catch (err) {

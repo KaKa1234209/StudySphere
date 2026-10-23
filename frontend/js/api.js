@@ -2,7 +2,7 @@
 class ApiUnavailable extends Error {}
 
 async function request(url, options = {}) {
-  const token = localStorage.getItem("token");
+  const token = localStorage.getItem(userKey("sf_goals"))
   let res;
   try {
     res = await fetch(url, {

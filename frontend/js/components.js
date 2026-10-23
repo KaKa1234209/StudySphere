@@ -35,6 +35,15 @@ function currentUser() {
   try { return JSON.parse(localStorage.getItem("user")) || {}; } catch { return {}; }
 }
 
+// ---------- Mỗi tài khoản một kho dữ liệu riêng ----------
+// userKey("sf_tasks") -> "sf_tasks:abc@gmail.com"
+// Mọi chỗ lưu dữ liệu vào localStorage phải đi qua hàm này.
+function userKey(base) {
+  const u = currentUser();
+  const id = u.id || u.email || u.name || "guest";
+  return `${base}:${id}`;
+}
+
 // ---------- Dữ liệu môn học dùng chung (cho NoteHub & StudyFlow) ----------
 const DEFAULT_SUBJECT_SEED = [
   { id: 1, code: "MATH101", name: "Toán học", teacher: "" },
@@ -47,7 +56,7 @@ const DEFAULT_SUBJECT_SEED = [
 
 function getSubjects() {
   try {
-    const raw = localStorage.getItem("sf_subjects");
+    const raw = localStorage.getItem(userKey("sf_subjects"));
     if (!raw) return DEFAULT_SUBJECT_SEED;
     const list = JSON.parse(raw);
     return Array.isArray(list) && list.length ? list : DEFAULT_SUBJECT_SEED;
@@ -150,7 +159,8 @@ function renderTopbar(setOpen) {
   const dateText = new Date().toLocaleDateString("vi-VN", {
     weekday: "long", day: "2-digit", month: "2-digit", year: "numeric"
   });
-//Thanh trên
+
+  // Thanh trên
   box.innerHTML = `
     <div class="th-left">
       <button type="button" class="th-menu" id="btnMenu" aria-label="Mở menu"><i class="fa-solid fa-bars"></i></button>
@@ -158,7 +168,7 @@ function renderTopbar(setOpen) {
     </div>
     <div class="th-right">
       <span class="th-date">${esc(dateText)}</span>
-        <a class="th-user" href="profile.html" aria-label="Mở hồ sơ cá nhân của ${esc(name)}" title="Hồ sơ cá nhân">
+      <a class="th-user" href="profile.html" aria-label="Mở hồ sơ cá nhân của ${esc(name)}" title="Hồ sơ cá nhân">
         <span class="th-name">${esc(name)}</span>
         <span class="th-avatar" aria-hidden="true">${esc(name.trim().charAt(0).toUpperCase() || "S")}</span>
       </a>
