@@ -5,73 +5,30 @@
 // Môn học: { id, code, name, teacher, created_at }
 // ==========================================================
 (() => {
-  const USE_MOCK = true;
-  const API = "/api/subjects";
-  const KEY = "sf_subjects";
+  const { subjects: SubjectAPI, tasks: TaskAPI } = SFData;
   const COLORS = ["#8c7ad0", "#ec4899", "#0ea5e9", "#10b981", "#f59e0b", "#ef4444", "#4f46e5", "#64748b"];
-
-  // Dữ liệu mẫu cho lần mở đầu tiên
-  const SEED = [
-    ["MATH101", "Toán học", ""],
-    ["PROG201", "Ngôn ngữ lập trình", ""],
-    ["DB301", "Cơ sở dữ liệu", ""],
-    ["NET201", "Mạng máy tính", ""],
-    ["WEB301", "Thiết kế web", ""],
-    ["ENG201", "Tiếng Anh", ""],
-  ].map(([code, name, teacher], i) => ({ id: i + 1, code, name, teacher, created_at: new Date().toISOString() }));
 
   const $ = id => document.getElementById(id);
 
-  // ---------- Lấy / lưu dữ liệu ----------
-  async function http(url, options = {}) {
-    const token = localStorage.getItem("token");
-    const res = await fetch(url, {
-      ...options,
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-    });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok || json.success === false) throw new Error(json.message || "Có lỗi xảy ra, vui lòng thử lại");
-    return json.data !== undefined ? json.data : json;
-  }
-
-  const readLocal = () => {
-    try {
-      const raw = localStorage.getItem(KEY);
-      if (raw === null) { writeLocal(SEED); return [...SEED]; }
-      const list = JSON.parse(raw);
-      return Array.isArray(list) ? list : [];
-    } catch { return []; }
-  };
-  const writeLocal = list => localStorage.setItem(KEY, JSON.stringify(list));
-
-  const Data = USE_MOCK ? {
-    list: async () => readLocal(),
-    create: async body => {
-      const list = readLocal();
-      const item = { ...body, id: Math.max(0, ...list.map(s => s.id)) + 1, created_at: new Date().toISOString() };
-      writeLocal([...list, item]);
-      return item;
-    },
-    update: async (id, body) => writeLocal(readLocal().map(s => (s.id === Number(id) ? { ...s, ...body } : s))),
+  // ---------- Lấy / lưu dữ liệu: dùng chung SFData như các trang khác ----------
+  const Data = {
+    list: () => SubjectAPI.list(),
+    create: body => SubjectAPI.create(body),
+    update: (id, body) => SubjectAPI.update(id, { ...subjects.find(s => s.id === Number(id)), ...body }),
     remove: async id => {
-      writeLocal(readLocal().filter(s => s.id !== Number(id)));
+      await SubjectAPI.remove(id);
       // Nhiệm vụ của môn bị xóa vẫn được giữ lại, chỉ mất liên kết với môn
-      try {
-        const tasks = JSON.parse(localStorage.getItem("sf_tasks"));
-        if (Array.isArray(tasks)) {
-          localStorage.setItem("sf_tasks", JSON.stringify(tasks.map(t => (t.subject_id === Number(id) ? { ...t, subject_id: null } : t))));
-        }
-      } catch { /* bỏ qua */ }
+      const list = await TaskAPI.list();
+      await Promise.all(
+        list.filter(t => t.subject_id === Number(id))
+            .map(t => TaskAPI.update(t.id, { ...t, subject_id: null }))
+      );
     },
-  } : {
-    list: () => http(API),
-    create: body => http(API, { method: "POST", body: JSON.stringify(body) }),
-    update: (id, body) => http(`${API}/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    remove: id => http(`${API}/${id}`, { method: "DELETE" }),
   };
 
   // ---------- Trạng thái ----------
   let subjects = [];
+  let tasks = []; 
   let editingId = null;
   let deleteId = null;
 
@@ -94,9 +51,7 @@
 
   // ---------- Hiển thị ----------
   function taskSummary(subjectId) {
-    let list = [];
-    try { list = JSON.parse(localStorage.getItem("sf_tasks")) || []; } catch { /* bỏ qua */ }
-    const mine = list.filter(t => t.subject_id === subjectId);
+    const mine = tasks.filter(t => t.subject_id === subjectId);
     if (mine.length === 0) return "Chưa có nhiệm vụ";
     const done = mine.filter(t => t.status === "done").length;
     return `${mine.length} nhiệm vụ · ${done} hoàn thành`;
@@ -161,9 +116,10 @@
 
   async function load() {
     try {
-      subjects = await Data.list();
+      [subjects, tasks] = await Promise.all([Data.list(), TaskAPI.list()]);
     } catch (err) {
       subjects = [];
+      tasks = [];
       toast(err.message);
     }
     render();

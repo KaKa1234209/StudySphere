@@ -57,15 +57,21 @@ const SFData = (() => {
   }));
 
   // ---------- localStorage ----------
+    // ---------- localStorage ----------
   function readLocal(key, seed) {
     try {
-      const raw = localStorage.getItem(key);
-      if (raw === null) { const s = seed(); localStorage.setItem(key, JSON.stringify(s)); return s; }
+      const raw = localStorage.getItem(userKey(key));
+      if (raw === null) {
+        const s = seed();
+        localStorage.setItem(userKey(key), JSON.stringify(s));
+        return s;
+      }
       const v = JSON.parse(raw);
       return Array.isArray(v) ? v : [];
     } catch { return []; }
   }
-  const writeLocal = (key, list) => localStorage.setItem(key, JSON.stringify(list));
+  const writeLocal = (key, list) =>
+    localStorage.setItem(userKey(key), JSON.stringify(list));
 
   // ---------- API thật ----------
   async function http(url, options = {}) {
